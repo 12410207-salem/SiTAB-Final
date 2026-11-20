@@ -14,7 +14,7 @@ const Auth = {
     kurir: {
       email: '12410208@student.unklab.ac.id',
       pass: 'pass123',
-      name: 'Daniel Rantung'
+      name: 'Sanuel Anasim'
     },
     admin: {
       email: '12410207@student.unklab.ac.id',

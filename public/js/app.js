@@ -101,8 +101,8 @@ const App = {
     let targetScreen = 'screen-mahasiswa';
 
     if (role === 'kurir') {
-      targetEmail = '12410208@student.unklab.ac.id'; // Kurir: Daniel Rantung
-      targetName = 'Daniel Rantung';
+      targetEmail = '12410208@student.unklab.ac.id'; // Kurir: Samuel Anasim
+      targetName = 'Samuel Anasim';
       targetRole = 'kurir';
       targetScreen = 'screen-kurir';
     } else if (role === 'admin') {
