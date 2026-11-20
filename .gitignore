@@ -1,33 +1,4 @@
-<<<<<<< HEAD
 node_modules/
 .DS_Store
 *.log
 npm-debug.log*
-=======
-# Dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Environment & Logs
-*.log
-.env
-.env.local
-
-# OS Metadata
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# IDE & Editor
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
-
-# Build / Temp
-dist/
-tmp/
-*.tmp
->>>>>>> 2e27fd8a28af4990ea3dad9dd274e50d922d6e14

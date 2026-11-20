@@ -1,0 +1,56 @@
+[
+  {
+    "id_lokasi": 1,
+    "nama_lokasi": "Gedung GK1 · Lantai 1",
+    "jenis": "drop point",
+    "keterangan": "Sebelah lobi utama loker. Jam operasional 07.00–20.00 WITA. Kapasitas: 8/12 loker tersedia."
+  },
+  {
+    "id_lokasi": 2,
+    "nama_lokasi": "Perpustakaan Pusat",
+    "jenis": "drop point",
+    "keterangan": "Lobi lantai 1 loket penitipan resmi."
+  },
+  {
+    "id_lokasi": 3,
+    "nama_lokasi": "Asrama Crystal",
+    "jenis": "gedung",
+    "keterangan": "Lobi utama asrama putri."
+  },
+  {
+    "id_lokasi": 4,
+    "nama_lokasi": "Asrama Edelweiss",
+    "jenis": "gedung",
+    "keterangan": "Lobi utama asrama putri."
+  },
+  {
+    "id_lokasi": 5,
+    "nama_lokasi": "Asrama Jasmine",
+    "jenis": "gedung",
+    "keterangan": "Lobi utama asrama putri."
+  },
+  {
+    "id_lokasi": 6,
+    "nama_lokasi": "Kantin Pusat",
+    "jenis": "gedung",
+    "keterangan": "Pusat kuliner kampus UNKLAB."
+  },
+  {
+    "id_lokasi": 7,
+    "nama_lokasi": "Fakultas Ilmu Komputer (FIK)",
+    "jenis": "gedung",
+    "keterangan": "Lantai 1 koridor depan lab komputer."
+  },
+  {
+    "id_lokasi": 8,
+    "nama_lokasi": "Gedung GK2 · Lantai 1",
+    "jenis": "drop point",
+    "keterangan": "Lobi loker drop point barat."
+  },
+  {
+    "id_lokasi": 9,
+    "nama_lokasi": "Pos Satpam Gerbang Utama",
+    "jenis": "drop point",
+    "keterangan": "Drop point pos satpam depan gerbang UNKLAB."
+  }
+]

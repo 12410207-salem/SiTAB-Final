@@ -10,8 +10,29 @@ const App = {
   locations: [],
   orderFilter: 'Semua',
 
+  // Escape teks dari pengguna sebelum disisipkan ke innerHTML (cegah XSS & tampilan rusak)
+  esc(value) {
+    return String(value === null || value === undefined ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+
+  // Sesi dari login memakai `peran`, sesi dari localStorage memakai `role`; satukan di sini.
+  roleOf(user) {
+    return user ? (user.role || user.peran || '') : '';
+  },
+
+  // Simpan user login dengan kedua properti (peran & role) agar konsisten di semua layar.
+  setCurrentUser(user) {
+    this.currentUser = user ? { ...user, role: user.peran || user.role } : null;
+    return this.currentUser;
+  },
+
   async init() {
-    this.currentUser = Auth.getUser();
+    this.setCurrentUser(Auth.getUser());
     this.bindGlobalEvents();
     await this.loadLocations();
 
@@ -41,10 +62,10 @@ const App = {
       this.handleHashRoute();
     } else if (this.currentUser) {
       this.updateUserBadge(this.currentUser);
-      this.updateRolePillHighlights(this.currentUser.role);
-      if (this.currentUser.role === 'administrator') {
+      this.updateRolePillHighlights(this.roleOf(this.currentUser));
+      if (this.roleOf(this.currentUser) === 'administrator') {
         this.navigateTo('screen-admin');
-      } else if (this.currentUser.role === 'kurir') {
+      } else if (this.roleOf(this.currentUser) === 'kurir') {
         this.navigateTo('screen-kurir');
       } else {
         this.navigateTo('screen-mahasiswa');
@@ -94,7 +115,7 @@ const App = {
     const res = await Auth.handleLogin(targetEmail, 'pass123');
     if (res.success) {
       Auth.setUser(res.user, res.user.peran);
-      this.currentUser = res.user;
+      this.setCurrentUser(res.user);
       this.updateUserBadge(res.user);
       this.updateRolePillHighlights(res.user.peran);
       this.navigateTo(targetScreen);
@@ -132,10 +153,28 @@ const App = {
       'L-15': 'screen-reg-kurir'
     };
 
-    const targetScreen = screenMap[hash.toUpperCase()] || (hash.startsWith('screen-') ? hash : null);
-    if (targetScreen && document.getElementById(targetScreen)) {
-      this.navigateTo(targetScreen, false);
+    let targetScreen = screenMap[hash.toUpperCase()] || (hash.startsWith('screen-') ? hash : null);
+    if (!targetScreen || !document.getElementById(targetScreen)) return;
+
+    // Guard: layar internal hanya untuk pengguna yang sudah login & sesuai perannya.
+    const publicScreens = ['screen-login', 'screen-reg-mahasiswa', 'screen-verif-email', 'screen-reg-kurir'];
+    if (!publicScreens.includes(targetScreen)) {
+      const role = this.roleOf(this.currentUser);
+      if (!role) {
+        targetScreen = 'screen-login';
+      } else {
+        const adminOnly = ['screen-admin'];
+        const kurirOnly = ['screen-kurir', 'screen-serah-terima'];
+        const mahasiswaOnly = ['screen-mahasiswa', 'screen-titip', 'screen-pesan-antar', 'screen-lacak', 'screen-riwayat', 'screen-lapor', 'screen-rating'];
+        const home = role === 'administrator' ? 'screen-admin' : (role === 'kurir' ? 'screen-kurir' : 'screen-mahasiswa');
+        if ((adminOnly.includes(targetScreen) && role !== 'administrator') ||
+            (kurirOnly.includes(targetScreen) && role !== 'kurir') ||
+            (mahasiswaOnly.includes(targetScreen) && role !== 'mahasiswa')) {
+          targetScreen = home;
+        }
+      }
     }
+    this.navigateTo(targetScreen, false);
   },
 
   async handleFileUpload(inputElement, previewImgId, hiddenPathId, prefix = 'foto') {
@@ -266,9 +305,39 @@ const App = {
     const bottomNav = document.querySelector('.bottom-nav');
     if (!bottomNav) return;
 
-    // Show bottom nav only on main app screens
-    const navScreens = ['screen-mahasiswa', 'screen-kurir', 'screen-riwayat', 'screen-lacak'];
-    if (navScreens.includes(screenId) && this.currentUser && this.currentUser.role !== 'administrator') {
+    const role = this.roleOf(this.currentUser);
+    const items = bottomNav.querySelectorAll('.nav-item');
+
+    // Menu bawah menyesuaikan peran: kurir punya jalan pintas ke menu Input OTP (L-09).
+    const config = role === 'kurir'
+      ? [
+          { label: 'Beranda', target: 'screen-kurir', action: "App.navigateTo('screen-kurir')" },
+          { label: 'Input OTP', target: 'screen-serah-terima', action: "App.navigateTo('screen-serah-terima')" },
+          { hidden: true },
+          { label: 'Keluar', target: 'screen-login', action: 'Auth.logout()' }
+        ]
+      : [
+          { label: 'Beranda', target: 'screen-mahasiswa', action: "App.navigateTo('screen-mahasiswa')" },
+          { label: 'Barang', target: 'screen-pesan-antar', action: "App.navigateTo('screen-pesan-antar')" },
+          { label: 'Riwayat', target: 'screen-riwayat', action: "App.navigateTo('screen-riwayat')" },
+          { label: 'Profil', target: 'screen-login', action: 'Auth.logout()' }
+        ];
+
+    items.forEach((btn, i) => {
+      const c = config[i];
+      if (!c) return;
+      btn.style.display = c.hidden ? 'none' : '';
+      if (c.hidden) return;
+      btn.dataset.target = c.target;
+      btn.setAttribute('onclick', c.action);
+      const span = btn.querySelector('span');
+      if (span) span.textContent = c.label;
+    });
+
+    const navScreens = role === 'kurir'
+      ? ['screen-kurir', 'screen-serah-terima']
+      : ['screen-mahasiswa', 'screen-kurir', 'screen-riwayat', 'screen-lacak'];
+    if (navScreens.includes(screenId) && role && role !== 'administrator') {
       bottomNav.style.display = 'flex';
     } else {
       bottomNav.style.display = 'none';
@@ -359,11 +428,11 @@ const App = {
             <div class="order-badge">${isTitip ? 'LOKER DROP POINT AKTIF' : 'PENGIRIMAN AKTIF'} · ${activeItem.kode_resi}</div>
             <span class="badge-status badge-${activeItem.status.toLowerCase().replace(/\s+/g, '')}">${activeItem.status}</span>
           </div>
-          <div class="order-heading">${activeItem.deskripsi_barang.substring(0, 32)}</div>
+          <div class="order-heading">${App.esc(activeItem.deskripsi_barang.substring(0, 32))}</div>
           <div class="order-route">
             <span>📍 ${activeItem.lokasi_asal_nama}</span> ➔ <span>🏁 ${activeItem.lokasi_tujuan_nama}</span>
           </div>
-          ${activeItem.ruangan_tujuan ? `<div style="font-size:11px; color:#93c5fd; margin-top:2px;">🏢 Ruangan/Pos: ${activeItem.ruangan_tujuan}</div>` : ''}
+          ${activeItem.ruangan_tujuan ? `<div style="font-size:11px; color:#93c5fd; margin-top:2px;">🏢 Ruangan/Pos: ${App.esc(activeItem.ruangan_tujuan)}</div>` : ''}
           <div class="order-footer">
             <span>OTP: <strong style="font-size:16px; letter-spacing:2px; color:#38bdf8;">${activeItem.kode_otp || '----'}</strong></span>
             <div style="display:flex; gap:8px;">
@@ -390,7 +459,7 @@ const App = {
             return `
               <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #e2e8f0;">
                 <div>
-                  <div style="font-size:14px; font-weight:700;">${it.deskripsi_barang.substring(0, 25)}</div>
+                  <div style="font-size:14px; font-weight:700;">${App.esc(it.deskripsi_barang.substring(0, 25))}</div>
                   <div style="font-size:12px; color:#64748b;">${it.kode_resi} · ${it.lokasi_asal_nama} ➔ ${it.lokasi_tujuan_nama}</div>
                   <div style="font-size:11px; color:#0284c7;">${isTitip ? 'Titip Loker Drop Point' : 'Pesan Antar Kurir'}</div>
                 </div>
@@ -447,12 +516,12 @@ const App = {
               <span style="font-weight:800; color:var(--primary-navy);">${task.kode_resi}</span>
               <span class="badge-status badge-${task.status.toLowerCase().replace(/\s+/g, '')}">${task.status}</span>
             </div>
-            <div style="font-size:14px; font-weight:700; margin-top:6px;">${task.deskripsi_barang}</div>
+            <div style="font-size:14px; font-weight:700; margin-top:6px;">${App.esc(task.deskripsi_barang)}</div>
             <div style="font-size:12px; color:#475569; margin-top:6px; line-height:1.6;">
               <div>📍 <strong>Jemput:</strong> ${task.lokasi_asal_nama}</div>
               <div>🏁 <strong>Antar ke:</strong> ${task.lokasi_tujuan_nama}</div>
-              ${task.ruangan_tujuan ? `<div style="color:#0284c7;">🏢 <strong>Ruangan/Pos:</strong> ${task.ruangan_tujuan}</div>` : ''}
-              <div>👤 <strong>Penerima:</strong> ${task.nama_penerima || 'Penerima'} (${task.pemesan_nama || 'Pemesan'})</div>
+              ${task.ruangan_tujuan ? `<div style="color:#0284c7;">🏢 <strong>Ruangan/Pos:</strong> ${App.esc(task.ruangan_tujuan)}</div>` : ''}
+              <div>👤 <strong>Penerima:</strong> ${App.esc(task.nama_penerima || 'Penerima')} (${App.esc(task.pemesan_nama || 'Pemesan')})</div>
             </div>
             <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px;">
               ${task.status === 'Menunggu' ? `
@@ -517,9 +586,9 @@ const App = {
             tbody.innerHTML = list.map(p => `
               <tr>
                 <td><strong>${p.kode_resi}</strong><br><span style="font-size:10px; color:#64748b;">${p.jenis === 'titip' ? '📦 Titip Loker' : '✈️ Pesan Antar'}</span></td>
-                <td>${p.pemesan_nama}<br><span style="font-size:10px; color:#64748b;">${p.pemesan_email}</span></td>
-                <td>${p.lokasi_asal_nama} ➔ ${p.lokasi_tujuan_nama}${p.ruangan_tujuan ? `<br><span style="font-size:10px; color:#0284c7;">(${p.ruangan_tujuan})</span>` : ''}</td>
-                <td>${p.kurir ? p.kurir.nama : '<span style="color:#b45309; font-size:11px;">Belum Ditugaskan</span>'}</td>
+                <td>${App.esc(p.pemesan_nama)}<br><span style="font-size:10px; color:#64748b;">${App.esc(p.pemesan_email)}</span></td>
+                <td>${p.lokasi_asal_nama} ➔ ${p.lokasi_tujuan_nama}${p.ruangan_tujuan ? `<br><span style="font-size:10px; color:#0284c7;">(${App.esc(p.ruangan_tujuan)})</span>` : ''}</td>
+                <td>${p.kurir ? App.esc(p.kurir.nama) : '<span style="color:#b45309; font-size:11px;">Belum Ditugaskan</span>'}</td>
                 <td><span class="badge-status badge-${p.status.toLowerCase().replace(/\s+/g, '')}">${p.status}</span></td>
                 <td>
                   <div style="display:flex; gap:4px;">
@@ -550,11 +619,11 @@ const App = {
             pendingBox.innerHTML = pending.map(k => `
               <div class="card" style="margin-bottom:10px; padding:14px; background:#f8fafc; border:1px solid #cbd5e1;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <strong style="font-size:15px; color:var(--primary-navy);">${k.nama}</strong>
+                  <strong style="font-size:15px; color:var(--primary-navy);">${App.esc(k.nama)}</strong>
                   <span class="badge-status badge-menunggu">Menunggu Verifikasi</span>
                 </div>
                 <div style="font-size:12px; color:#475569; margin:6px 0;">
-                  <div>Email: ${k.email_kampus} · Telp: ${k.no_hp}</div>
+                  <div>Email: ${App.esc(k.email_kampus)} · Telp: ${App.esc(k.no_hp)}</div>
                   <div>Shift Ketersediaan: <strong>${k.jadwal.map(j => `${j.hari} (${j.jam_mulai}–${j.jam_selesai} WITA)`).join(', ')}</strong></div>
                   <div>Kode Etik: <span style="color:#15803d; font-weight:700;">✓ Disetujui</span></div>
                 </div>
@@ -570,7 +639,7 @@ const App = {
         if (listTbody) {
           listTbody.innerHTML = kurirData.data.map(k => `
             <tr>
-              <td><strong>${k.nama}</strong><br><span style="font-size:10px; color:#64748b;">${k.email_kampus}</span></td>
+              <td><strong>${App.esc(k.nama)}</strong><br><span style="font-size:10px; color:#64748b;">${App.esc(k.email_kampus)}</span></td>
               <td>⭐ ${k.rating_rata}</td>
               <td>
                 <select onchange="App.toggleKurirDuty(${k.id_kurir}, this.value)" style="font-size:11px; padding:2px 6px; border-radius:6px; border:1px solid #cbd5e1;">
@@ -597,13 +666,13 @@ const App = {
             repTbody.innerHTML = repData.data.map(l => `
               <tr>
                 <td><strong>${l.kode_resi}</strong></td>
-                <td>${l.pelapor_nama}</td>
-                <td>${l.deskripsi}</td>
+                <td>${App.esc(l.pelapor_nama)}</td>
+                <td>${App.esc(l.deskripsi)}</td>
                 <td><span class="badge-status badge-${l.status === 'selesai' ? 'aktif' : 'menunggu'}">${l.status}</span></td>
                 <td>
                   ${l.status !== 'selesai' ? `
                     <button class="btn btn-primary" style="padding:4px 10px; font-size:11px;" onclick="App.openFollowupModal(${l.id_laporan})">🔍 Tindak Lanjuti</button>
-                  ` : `<span style="font-size:11px; color:#15803d; font-weight:600;">Selesai: ${l.tindak_lanjut || '-'}</span>`}
+                  ` : `<span style="font-size:11px; color:#15803d; font-weight:600;">Selesai: ${App.esc(l.tindak_lanjut || '-')}</span>`}
                 </td>
               </tr>
             `).join('');
@@ -619,8 +688,8 @@ const App = {
         if (usrTbody) {
           usrTbody.innerHTML = usrData.data.map(u => `
             <tr>
-              <td><strong>${u.nama}</strong></td>
-              <td>${u.email_kampus}</td>
+              <td><strong>${App.esc(u.nama)}</strong></td>
+              <td>${App.esc(u.email_kampus)}</td>
               <td><span style="text-transform:capitalize; font-weight:600;">${u.peran}</span></td>
               <td><span class="badge-status badge-${u.status_akun}">${u.status_akun}</span></td>
               <td>
@@ -703,7 +772,7 @@ const App = {
             <h2 style="font-size:24px; font-weight:800; color:var(--primary-navy);">${p.kode_resi}</h2>
             <span class="badge-status badge-${p.status.toLowerCase().replace(/\s+/g, '')}">${p.status === 'Terkirim' ? 'Selesai' : p.status}</span>
           </div>
-          <p style="font-size:13px; color:#475569; font-weight:600;">${p.deskripsi_barang}</p>
+          <p style="font-size:13px; color:#475569; font-weight:600;">${App.esc(p.deskripsi_barang)}</p>
         </div>
 
         <div class="card card-navy">
@@ -712,7 +781,7 @@ const App = {
             ${p.status === 'Terkirim' ? 'Transaksi Selesai' : (isTitip ? 'Siap Diambil di Loker' : 'Tiba sekitar 10–15 Menit')}
           </div>
           <div style="font-size:13px; color:#cbd5e1;">${p.lokasi_asal} ➔ ${p.lokasi_tujuan}</div>
-          ${p.ruangan_tujuan ? `<div style="font-size:12px; color:#93c5fd; margin-top:4px;">🏢 Ruangan/Pos: ${p.ruangan_tujuan}</div>` : ''}
+          ${p.ruangan_tujuan ? `<div style="font-size:12px; color:#93c5fd; margin-top:4px;">🏢 Ruangan/Pos: ${App.esc(p.ruangan_tujuan)}</div>` : ''}
         </div>
 
         <div class="card">
@@ -738,7 +807,7 @@ const App = {
           <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
             <div>
               <div style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Kurir Mahasiswa Penanggung Jawab</div>
-              <div style="font-size:15px; font-weight:800; color:var(--primary-navy);">${p.kurir.nama}</div>
+              <div style="font-size:15px; font-weight:800; color:var(--primary-navy);">${App.esc(p.kurir.nama)}</div>
               <div style="font-size:12px; color:#64748b;">⭐ ${p.kurir.rating_rata} · Mitra Labor Kampus</div>
             </div>
             <a href="tel:${p.kurir.no_hp || '0812'}" class="btn btn-outline" style="padding:8px 12px; border-radius:50%; font-size:14px;">📞</a>
@@ -817,14 +886,14 @@ const App = {
           <div class="card" style="margin-bottom:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <div>
-                <div style="font-size:15px; font-weight:800; color:var(--primary-navy);">${it.deskripsi_barang.substring(0, 30)}</div>
+                <div style="font-size:15px; font-weight:800; color:var(--primary-navy);">${App.esc(it.deskripsi_barang.substring(0, 30))}</div>
                 <div style="font-size:12px; color:#64748b;">${it.kode_resi} · ${isTitip ? 'Titip Drop Point' : 'Pesan Antar'}</div>
               </div>
               <span class="badge-status badge-${it.status.toLowerCase().replace(/\s+/g, '')}">${isDone ? 'Selesai' : it.status}</span>
             </div>
             <div style="font-size:12px; color:#475569; margin:8px 0;">
               ${it.lokasi_asal_nama} ➔ ${it.lokasi_tujuan_nama}
-              ${it.ruangan_tujuan ? ` (${it.ruangan_tujuan})` : ''}
+              ${it.ruangan_tujuan ? ` (${App.esc(it.ruangan_tujuan)})` : ''}
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:8px; font-size:12px;">
               <span style="font-weight:700;">Biaya: Rp${isTitip ? '2.000' : '5.000'}</span>
@@ -878,7 +947,7 @@ const App = {
             <div style="padding:10px 0; border-bottom:1px solid #e2e8f0; display:flex; gap:10px; align-items:flex-start;">
               <span style="font-size:18px;">🔔</span>
               <div style="flex:1;">
-                <div style="font-size:13px; font-weight:${n.sudah_dibaca ? '500' : '700'};">${n.pesan}</div>
+                <div style="font-size:13px; font-weight:${n.sudah_dibaca ? '500' : '700'};">${App.esc(n.pesan)}</div>
                 <div style="font-size:11px; color:#94a3b8; margin-top:2px;">${new Date(n.waktu).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WITA</div>
               </div>
             </div>
@@ -914,7 +983,7 @@ const App = {
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
               <div style="font-size:22px;">${n.pesan.includes('selesai') || n.pesan.includes('berhasil') ? '🎉' : (n.pesan.includes('kurir') ? '🛵' : '📦')}</div>
               <div style="flex:1;">
-                <div style="font-size:13px; font-weight:${n.sudah_dibaca ? '600' : '800'}; color:var(--text-main); line-height:1.4;">${n.pesan}</div>
+                <div style="font-size:13px; font-weight:${n.sudah_dibaca ? '600' : '800'}; color:var(--text-main); line-height:1.4;">${App.esc(n.pesan)}</div>
                 <div style="font-size:11px; color:#94a3b8; margin-top:4px;">${dateStr} · ${timeStr}</div>
               </div>
               ${n.id_permintaan ? `
@@ -1060,25 +1129,28 @@ const App = {
     if (!select) return;
 
     try {
-      const kurirId = this.currentUser ? this.currentUser.id_pengguna : 3;
-      const res = await fetch(`/api/permintaan?user_id=${kurirId}&role=kurir`);
+      if (!this.currentUser) return;
+      const res = await fetch(`/api/permintaan?user_id=${this.currentUser.id_pengguna}&role=kurir`);
       const data = await res.json();
       if (!data.success) return;
 
-      const activeTasks = data.data.filter(p => p.status !== 'Terkirim');
+      // Hanya pesanan yang sudah dijemput kurir yang bisa diserahterimakan (butuh OTP penerima).
+      const activeTasks = data.data.filter(p => p.status === 'Dijemput' || p.status === 'Dalam Perjalanan');
       select.innerHTML = '<option value="">-- Pilih Tugas Pengantaran Aktif --</option>';
 
       if (activeTasks.length === 0) {
-        select.innerHTML = '<option value="">Tidak ada tugas aktif (semua selesai)</option>';
+        select.innerHTML = '<option value="">Tidak ada tugas siap serah-terima</option>';
         if (preview) {
           preview.style.display = 'block';
-          preview.innerHTML = '<div style="text-align:center; padding:16px; color:#93c5fd;">Tidak ada tugas pengantaran aktif saat ini. Semua pengantaran telah selesai.</div>';
+          preview.innerHTML = '<div style="text-align:center; padding:16px; color:#93c5fd;">Belum ada tugas yang siap diserahterimakan. Jemput barang dan mulai antar dari Beranda Kurir terlebih dahulu.</div>';
         }
+        const helperEl = document.getElementById('screen-st-helper');
+        if (helperEl) helperEl.innerHTML = '';
         return;
       }
 
       activeTasks.forEach(task => {
-        select.innerHTML += `<option value="${task.id_permintaan}">${task.kode_resi} — ${task.deskripsi_barang.substring(0, 25)} (${task.status})</option>`;
+        select.innerHTML += `<option value="${task.id_permintaan}">${task.kode_resi} — ${App.esc(task.deskripsi_barang.substring(0, 25))} (${task.status})</option>`;
       });
 
       if (activeTasks.length > 0) {
@@ -1117,11 +1189,11 @@ const App = {
             <span class="order-badge">TUGAS PENGANTARAN · ${task.kode_resi}</span>
             <span class="badge-status badge-${task.status.toLowerCase().replace(/\s+/g, '')}">${task.status}</span>
           </div>
-          <div style="font-size:16px; font-weight:800; margin:6px 0;">${task.deskripsi_barang}</div>
+          <div style="font-size:16px; font-weight:800; margin:6px 0;">${App.esc(task.deskripsi_barang)}</div>
           <div style="font-size:12px; color:#cbd5e1; line-height:1.6;">
             <div>📍 <strong>Jemput:</strong> ${task.lokasi_asal_nama || task.lokasi_asal}</div>
-            <div>🏁 <strong>Tujuan:</strong> ${task.lokasi_tujuan_nama || task.lokasi_tujuan}${task.ruangan_tujuan ? ` (${task.ruangan_tujuan})` : ''}</div>
-            <div>👤 <strong>Penerima:</strong> ${task.nama_penerima || '-'}</div>
+            <div>🏁 <strong>Tujuan:</strong> ${task.lokasi_tujuan_nama || task.lokasi_tujuan}${task.ruangan_tujuan ? ` (${App.esc(task.ruangan_tujuan)})` : ''}</div>
+            <div>👤 <strong>Penerima:</strong> ${App.esc(task.nama_penerima || '-')}</div>
           </div>
         `;
 
@@ -1169,15 +1241,19 @@ const App = {
   },
 
   async updateKurirStatus(id_permintaan, status_baru) {
-    const kurirId = this.currentUser && this.currentUser.id_kurir ? this.currentUser.id_kurir : 1;
+    if (!this.currentUser) {
+      this.showToast('Sesi berakhir. Silakan login kembali.');
+      this.navigateTo('screen-login');
+      return;
+    }
+    // Server menentukan kurir dari akun yang login (id_pengubah); id_kurir tidak lagi di-hardcode.
     const res = await fetch('/api/permintaan/status', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id_permintaan,
         status: status_baru,
-        id_kurir: kurirId,
-        id_pengubah: this.currentUser ? this.currentUser.id_pengguna : 3
+        id_pengubah: this.currentUser.id_pengguna
       })
     });
     const data = await res.json();
@@ -1203,7 +1279,7 @@ const App = {
       .then(d => {
         if (d.success && selectKurir) {
           selectKurir.innerHTML = d.data.filter(k => k.status_verifikasi === 'disetujui').map(k => `
-            <option value="${k.id_kurir}">${k.nama} (⭐${k.rating_rata} · ${k.status_ketersediaan})</option>
+            <option value="${k.id_kurir}">${App.esc(k.nama)} (⭐${k.rating_rata} · ${k.status_ketersediaan})</option>
           `).join('');
         }
       });
@@ -1247,11 +1323,11 @@ const App = {
             <div style="font-size:12px; color:#64748b;">Jenis: <strong>${p.jenis === 'titip' ? 'Titip Loker' : 'Pesan Antar'}</strong></div>
           </div>
           <div style="font-size:13px; line-height:1.6; margin-bottom:12px; background:#f8fafc; padding:10px; border-radius:10px;">
-            <div><strong>Barang:</strong> ${p.deskripsi_barang}</div>
+            <div><strong>Barang:</strong> ${App.esc(p.deskripsi_barang)}</div>
             <div><strong>Rute:</strong> ${p.lokasi_asal} ➔ ${p.lokasi_tujuan}</div>
-            ${p.ruangan_tujuan ? `<div><strong>Ruangan/Pos:</strong> ${p.ruangan_tujuan}</div>` : ''}
-            <div><strong>Penerima:</strong> ${p.nama_penerima || '-'}</div>
-            <div><strong>Kurir:</strong> ${p.kurir ? p.kurir.nama : 'Belum ditugaskan'}</div>
+            ${p.ruangan_tujuan ? `<div><strong>Ruangan/Pos:</strong> ${App.esc(p.ruangan_tujuan)}</div>` : ''}
+            <div><strong>Penerima:</strong> ${App.esc(p.nama_penerima || '-')}</div>
+            <div><strong>Kurir:</strong> ${p.kurir ? App.esc(p.kurir.nama) : 'Belum ditugaskan'}</div>
             <div><strong>Kode OTP:</strong> <span style="font-weight:800; color:var(--primary-teal);">${p.kode_otp || '----'}</span></div>
           </div>
           <div style="font-size:12px; font-weight:700; margin-bottom:6px;">Riwayat Perubahan Status:</div>
@@ -1381,7 +1457,7 @@ const App = {
 
         if (res.success) {
           Auth.setUser(res.user, res.user.peran);
-          this.currentUser = res.user;
+          this.setCurrentUser(res.user);
           this.updateUserBadge(res.user);
           this.updateRolePillHighlights(res.user.peran);
 

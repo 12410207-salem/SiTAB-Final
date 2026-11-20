@@ -1,0 +1,112 @@
+[
+  {
+    "id_pengguna": 1,
+    "nama": "Salem, Jovitly Mike",
+    "email_kampus": "12410207@student.unklab.ac.id",
+    "no_hp": "081234567801",
+    "password_hash": "$2a$10$cr17nzIA2tK9K/V9stycoe7umn1tcM4IvQCjx245HY04Gtjy36hFK",
+    "peran": "administrator",
+    "status_akun": "aktif",
+    "waktu_daftar": "2026-11-01T08:00:00.000Z"
+  },
+  {
+    "id_pengguna": 2,
+    "nama": "Salem, Jovitly Mike (NIM)",
+    "email_kampus": "105022410043@student.unklab.ac.id",
+    "no_hp": "081234567801",
+    "password_hash": "$2a$10$cr17nzIA2tK9K/V9stycoe7umn1tcM4IvQCjx245HY04Gtjy36hFK",
+    "peran": "administrator",
+    "status_akun": "aktif",
+    "waktu_daftar": "2026-11-01T08:00:00.000Z"
+  },
+  {
+    "id_pengguna": 3,
+    "nama": "Samuel Anasim",
+    "email_kampus": "12410208@student.unklab.ac.id",
+    "no_hp": "081234567802",
+    "password_hash": "$2a$10$cr17nzIA2tK9K/V9stycoe7umn1tcM4IvQCjx245HY04Gtjy36hFK",
+    "peran": "kurir",
+    "status_akun": "aktif",
+    "waktu_daftar": "2026-11-02T09:00:00.000Z"
+  },
+  {
+    "id_pengguna": 4,
+    "nama": "Sanjaya, Liandy Maygiven",
+    "email_kampus": "105022410044@student.unklab.ac.id",
+    "no_hp": "081234567803",
+    "password_hash": "$2a$10$cr17nzIA2tK9K/V9stycoe7umn1tcM4IvQCjx245HY04Gtjy36hFK",
+    "peran": "kurir",
+    "status_akun": "aktif",
+    "waktu_daftar": "2026-11-03T10:00:00.000Z"
+  },
+  {
+    "id_pengguna": 5,
+    "nama": "Makarewa, Miracle Evangelio",
+    "email_kampus": "105022410118@student.unklab.ac.id",
+    "no_hp": "081234567804",
+    "password_hash": "$2a$10$cr17nzIA2tK9K/V9stycoe7umn1tcM4IvQCjx245HY04Gtjy36hFK",
+    "peran": "mahasiswa",
+    "status_akun": "aktif",
+    "waktu_daftar": "2026-11-04T11:00:00.000Z"
+  },
+  {
+    "id_pengguna": 6,
+    "nama": "Sahala, Andrew",
+    "email_kampus": "105012410026@student.unklab.ac.id",
+    "no_hp": "081234567805",
+    "password_hash": "$2a$10$cr17nzIA2tK9K/V9stycoe7umn1tcM4IvQCjx245HY04Gtjy36hFK",
+    "peran": "kurir",
+    "status_akun": "aktif",
+    "waktu_daftar": "2026-11-05T12:00:00.000Z"
+  },
+  {
+    "id_pengguna": 7,
+    "nama": "Michelle Lumentut",
+    "email_kampus": "12410601@student.unklab.ac.id",
+    "no_hp": "081234567806",
+    "password_hash": "$2a$10$cr17nzIA2tK9K/V9stycoe7umn1tcM4IvQCjx245HY04Gtjy36hFK",
+    "peran": "kurir",
+    "status_akun": "aktif",
+    "waktu_daftar": "2026-11-06T13:00:00.000Z"
+  },
+  {
+    "id_pengguna": 8,
+    "nama": "Lumintang, Evangelio",
+    "email_kampus": "12410999@student.unklab.ac.id",
+    "no_hp": "081234567899",
+    "password_hash": "$2a$10$cr17nzIA2tK9K/V9stycoe7umn1tcM4IvQCjx245HY04Gtjy36hFK",
+    "peran": "mahasiswa",
+    "status_akun": "nonaktif",
+    "waktu_daftar": "2026-11-07T14:00:00.000Z"
+  },
+  {
+    "id_pengguna": 9,
+    "nama": "Santoso, Abdillah",
+    "email_kampus": "12410888@student.unklab.ac.id",
+    "no_hp": "081234567888",
+    "password_hash": "$2a$10$cr17nzIA2tK9K/V9stycoe7umn1tcM4IvQCjx245HY04Gtjy36hFK",
+    "peran": "mahasiswa",
+    "status_akun": "belum_diverifikasi",
+    "waktu_daftar": "2026-11-08T15:00:00.000Z"
+  },
+  {
+    "id_pengguna": 10,
+    "nama": "Jonathan Aso",
+    "email_kampus": "12410777@student.unklab.ac.id",
+    "no_hp": "081234567777",
+    "password_hash": "$2a$10$T.QGZVOi5MV7Pn1U1sJgEOM56vDXmOCVPZdWdsqZTx8mGr65N655S",
+    "peran": "mahasiswa",
+    "status_akun": "aktif",
+    "waktu_daftar": "2026-11-20T07:17:42.627Z"
+  },
+  {
+    "id_pengguna": 11,
+    "nama": "Vincent Lumabiang",
+    "email_kampus": "12410555@student.unklab.ac.id",
+    "no_hp": "081234567555",
+    "password_hash": "$2a$10$QZ8YwmpLNNPr665KwMULlO.ao0g/BrteV5koBIozPfRAAgAuHx9Mu",
+    "peran": "mahasiswa",
+    "status_akun": "belum_diverifikasi",
+    "waktu_daftar": "2026-11-20T07:17:42.913Z"
+  }
+]

@@ -1,5 +1,4 @@
 {
- <<<<<<< HEAD
   "name": "sitab-final",
   "version": "1.5.0",
   "description": "SiTAB — Sistem Titip Antar Barang Kampus UNKLAB",
@@ -19,18 +18,4 @@
   ],
   "author": "Kelompok Miedal (Salem, Sanjaya, Makarewa, Sahala) - Universitas Klabat",
   "license": "ISC"
-=======
-  "name": "sitab-unklab",
-  "version": "2.0.0",
-  "description": "Sistem Titip Antar Barang Kampus UNKLAB - Kelompok Miedal",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
-    "test": "node test_logic.js"
-  },
-  "keywords": ["sitab", "unklab", "campus", "delivery", "locker"],
-  "author": "Kelompok Miedal - Salem, Sanjaya, Makarewa, Sahala",
-  "license": "MIT",
-  "engines": { "node": ">=18.0.0" }
->>>>>>> 2e27fd8a28af4990ea3dad9dd274e50d922d6e14
+}

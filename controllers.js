@@ -18,7 +18,8 @@ function readData(entity) {
     return [];
   }
   try {
-    const raw = fs.readFileSync(filePath, 'utf8');
+    // Buang BOM (U+FEFF) bila file JSON disimpan oleh editor Windows tertentu
+    const raw = fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, '');
     return JSON.parse(raw);
   } catch (err) {
     console.error(`Error reading data for ${entity}:`, err);
@@ -121,6 +122,13 @@ class AuthController {
       }
     }
 
+    // id_kurir dipakai klien agar aksi kurir selalu tercatat atas nama kurir yang login
+    let idKurir = null;
+    if (effectiveRole === 'kurir') {
+      const kr = readData('kurir').find(k => k.id_pengguna === user.id_pengguna);
+      idKurir = kr ? kr.id_kurir : null;
+    }
+
     // Determine dashboard redirection
     let dashboard = 'dashboard-mahasiswa';
     if (effectiveRole === 'administrator') {
@@ -138,6 +146,7 @@ class AuthController {
         email_kampus: user.email_kampus,
         no_hp: user.no_hp,
         peran: effectiveRole,
+        id_kurir: idKurir,
         status_akun: user.status_akun
       },
       dashboard
@@ -791,6 +800,89 @@ class PermintaanController {
 
     return { success: true, message: `Status diperbarui menjadi ${status_baru}.` };
   }
+
+  /**
+   * Pembaruan status oleh kurir/admin lewat API (BUGFIX).
+   * - Identitas kurir diambil dari akun yang login (id_pengubah), BUKAN dari id_kurir kiriman klien.
+   *   Sebelumnya klien selalu mengirim id_kurir=1, sehingga pesanan kurir lain dialihkan ke kurir 1
+   *   dan hilang dari dashboard kurir yang sedang login (tombol Input OTP tidak pernah muncul).
+   * - Urutan status wajib: Menunggu -> Dijemput -> Dalam Perjalanan. 'Terkirim' HANYA lewat verifikasi OTP.
+   */
+  static perbaruiStatusOlehPengguna({ id_permintaan, status, id_pengubah, id_kurir }) {
+    const urutan = { 'Menunggu': 0, 'Dijemput': 1, 'Dalam Perjalanan': 2 };
+    if (status === 'Terkirim') {
+      return { success: false, code: 'OTP_REQUIRED', message: 'Status Terkirim hanya dapat diset lewat verifikasi OTP serah-terima.' };
+    }
+    if (!(status in urutan)) {
+      return { success: false, message: 'Status tidak valid.' };
+    }
+
+    const idPermintaan = parseInt(id_permintaan);
+    const item = readData('permintaan').find(p => p.id_permintaan === idPermintaan);
+    if (!item) return { success: false, message: 'Permintaan tidak ditemukan.' };
+    if (item.jenis !== 'antar') {
+      return { success: false, message: 'Hanya pesanan pengantaran yang diproses oleh kurir.' };
+    }
+    if (item.status === 'Terkirim') {
+      return { success: false, message: 'Pesanan ini sudah selesai (Terkirim).' };
+    }
+
+    const actor = readData('pengguna').find(u => u.id_pengguna === parseInt(id_pengubah));
+    if (!actor || actor.status_akun !== 'aktif') {
+      return { success: false, code: 'FORBIDDEN', message: 'Akun tidak dikenali atau tidak aktif.' };
+    }
+
+    const kurirList = readData('kurir');
+    let kurirActor = null;
+    if (actor.peran === 'kurir') {
+      kurirActor = kurirList.find(k => k.id_pengguna === actor.id_pengguna && k.status_verifikasi === 'disetujui');
+      if (!kurirActor) {
+        return { success: false, code: 'FORBIDDEN', message: 'Akun kurir Anda belum disetujui administrator.' };
+      }
+    } else if (actor.peran === 'administrator') {
+      kurirActor = id_kurir ? kurirList.find(k => k.id_kurir === parseInt(id_kurir)) : null;
+    } else {
+      return { success: false, code: 'FORBIDDEN', message: 'Hanya kurir atau administrator yang dapat mengubah status pengantaran.' };
+    }
+
+    const penugasanList = readData('penugasan');
+    const penugasan = penugasanList.find(p => p.id_permintaan === idPermintaan);
+
+    if (item.status === 'Menunggu') {
+      // Mengambil tugas: kurir yang menekan tombol menjadi penanggung jawab pesanan.
+      if (status !== 'Dijemput') {
+        return { success: false, message: 'Pesanan harus dijemput terlebih dahulu.' };
+      }
+      if (!kurirActor) {
+        return { success: false, message: 'Pilih kurir yang bertugas.' };
+      }
+      if (!penugasan) {
+        penugasanList.push({
+          id_penugasan: penugasanList.length > 0 ? Math.max(...penugasanList.map(p => p.id_penugasan)) + 1 : 1,
+          id_permintaan: idPermintaan,
+          id_kurir: kurirActor.id_kurir,
+          metode: 'manual',
+          waktu_ditugaskan: new Date().toISOString()
+        });
+        writeData('penugasan', penugasanList);
+      } else if (penugasan.id_kurir !== kurirActor.id_kurir) {
+        penugasan.id_kurir = kurirActor.id_kurir;
+        penugasan.metode = 'manual';
+        penugasan.waktu_ditugaskan = new Date().toISOString();
+        writeData('penugasan', penugasanList);
+      }
+    } else {
+      // Sudah dijemput: hanya kurir penanggung jawab (atau admin) yang boleh melanjutkan.
+      if (actor.peran === 'kurir' && (!penugasan || penugasan.id_kurir !== kurirActor.id_kurir)) {
+        return { success: false, code: 'FORBIDDEN', message: 'Pesanan ini ditangani kurir lain.' };
+      }
+      if (urutan[status] !== urutan[item.status] + 1) {
+        return { success: false, message: `Status tidak dapat diubah dari "${item.status}" ke "${status}".` };
+      }
+    }
+
+    return this.perbaruiStatus(idPermintaan, status, actor.id_pengguna);
+  }
 }
 
 // ============================================================================
@@ -877,6 +969,18 @@ class SerahTerimaController {
 
     if (record.kode_otp !== kode_otp.toString().trim()) {
       return { success: false, code: 'INVALID_OTP', message: 'Kode OTP serah-terima salah.' };
+    }
+
+    // BUGFIX: OTP hanya sah sekali & pada tahap yang benar (cegah serah-terima ganda / sebelum dijemput)
+    const itemCek = readData('permintaan').find(p => p.id_permintaan === parseInt(id_permintaan));
+    if (!itemCek) {
+      return { success: false, message: 'Permintaan tidak ditemukan.' };
+    }
+    if (itemCek.status === 'Terkirim') {
+      return { success: false, code: 'ALREADY_DONE', message: 'Serah-terima pesanan ini sudah selesai sebelumnya.' };
+    }
+    if (itemCek.jenis === 'antar' && itemCek.status === 'Menunggu') {
+      return { success: false, code: 'NOT_PICKED_UP', message: 'Pesanan belum dijemput kurir. Tekan "Jemput Barang" dan "Mulai Antar" terlebih dahulu.' };
     }
 
     const now = new Date().toISOString();

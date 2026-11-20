@@ -1,6 +1,6 @@
 // ============================================================================
 // SiTAB — Sistem Titip Antar Barang Kampus UNKLAB
-// test_logic.js — Automatic Black-Box Test Suite (TC-01 through TC-41)
+// test_logic.js — Automatic Black-Box Test Suite (TC-01 through TC-47)
 // ============================================================================
 
 const {
@@ -35,7 +35,7 @@ function assert(condition, testId, description, detail = '') {
 }
 
 console.log('================================================================');
-console.log('   SiTAB — AUTOMATED BLACK-BOX TEST SUITE (TC-01 s.d. TC-41)   ');
+console.log('   SiTAB — AUTOMATED BLACK-BOX TEST SUITE (TC-01 s.d. TC-47)   ');
 console.log('================================================================\n');
 
 // ----------------------------------------------------------------------------
@@ -731,6 +731,43 @@ let existingStudentKurirId = null;
     'Administrator menolak pengajuan kurir dengan alasan dan tersimpan di database',
     JSON.stringify(kurirData)
   );
+}
+
+// ----------------------------------------------------------------------------
+// TC-42..TC-47: Regresi bug kurir (id_kurir hardcode, OTP, urutan status)
+// ----------------------------------------------------------------------------
+{
+  // Login kurir membawa id_kurir
+  const lg = AuthController.login('105022410044@student.unklab.ac.id', 'pass123');
+  assert(lg.success && lg.user.id_kurir === 2, 'TC-42', 'Login kurir mengembalikan id_kurir milik akun tersebut', JSON.stringify(lg.user));
+
+  // Pesanan baru: kurir ke-2 (user 4) mengambil tugas, tidak dialihkan ke kurir lain
+  const ord = PermintaanController.pesanAntar({ id_pemesan: 5, deskripsi_barang: 'Regresi kurir', id_lokasi_asal: 1, id_lokasi_tujuan: 2, nama_penerima: 'Uji', ruangan_tujuan: 'R1' });
+  const id = ord.permintaan.id_permintaan;
+  const otp = ord.kode_otp;
+  const j = PermintaanController.perbaruiStatusOlehPengguna({ id_permintaan: id, status: 'Dijemput', id_pengubah: 4, id_kurir: 1 });
+  const tugas = readData('penugasan').find(p => p.id_permintaan === id);
+  assert(j.success && tugas.id_kurir === 2, 'TC-42b', 'id_kurir kiriman klien diabaikan; pesanan tetap milik kurir yang login', JSON.stringify(tugas));
+
+  // Kurir lain tidak boleh melanjutkan pesanan yang sudah dijemput kurir ke-2
+  const lain = PermintaanController.perbaruiStatusOlehPengguna({ id_permintaan: id, status: 'Dalam Perjalanan', id_pengubah: 3 });
+  assert(!lain.success && lain.code === 'FORBIDDEN', 'TC-43', 'Kurir lain ditolak mengubah status pesanan yang bukan tugasnya', JSON.stringify(lain));
+
+  // Tidak boleh loncat / set Terkirim tanpa OTP
+  const loncat = PermintaanController.perbaruiStatusOlehPengguna({ id_permintaan: id, status: 'Terkirim', id_pengubah: 4 });
+  assert(!loncat.success && loncat.code === 'OTP_REQUIRED', 'TC-44', 'Status Terkirim tidak bisa diset tanpa verifikasi OTP', JSON.stringify(loncat));
+
+  const jalan = PermintaanController.perbaruiStatusOlehPengguna({ id_permintaan: id, status: 'Dalam Perjalanan', id_pengubah: 4 });
+  assert(jalan.success, 'TC-45', 'Kurir penanggung jawab dapat lanjut ke Dalam Perjalanan', JSON.stringify(jalan));
+
+  const done = SerahTerimaController.verifikasiSerahTerima({ id_permintaan: id, kode_otp: otp, foto_bukti: null, id_pengubah: 4 });
+  const ulang = SerahTerimaController.verifikasiSerahTerima({ id_permintaan: id, kode_otp: otp, foto_bukti: null, id_pengubah: 4 });
+  assert(done.success && !ulang.success && ulang.code === 'ALREADY_DONE', 'TC-46', 'OTP serah-terima hanya sah sekali (tidak bisa diselesaikan dua kali)', JSON.stringify(ulang));
+
+  // OTP pada pesanan yang belum dijemput ditolak
+  const ord2 = PermintaanController.pesanAntar({ id_pemesan: 5, deskripsi_barang: 'Belum dijemput', id_lokasi_asal: 1, id_lokasi_tujuan: 2 });
+  const dini = SerahTerimaController.verifikasiSerahTerima({ id_permintaan: ord2.permintaan.id_permintaan, kode_otp: ord2.kode_otp, id_pengubah: 4 });
+  assert(!dini.success && dini.code === 'NOT_PICKED_UP', 'TC-47', 'Serah-terima sebelum pesanan dijemput ditolak', JSON.stringify(dini));
 }
 
 console.log('\n================================================================');
