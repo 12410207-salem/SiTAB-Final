@@ -1,6 +1,1053 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<<<<<<< HEAD
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiTAB — Sistem Titip Antar Barang Kampus UNKLAB</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ========================================================================
+       TOP PROTOTYPE TOOLBAR (SRS v1.5 & Figma Navigation + One-Click Role Switch)
+       ======================================================================== -->
+  <header class="prototype-bar">
+    <div class="prototype-bar-title">
+      <span class="badge">SiTAB v1.5</span>
+      <span>Kampus Universitas Klabat (UNKLAB)</span>
+    </div>
+
+    <!-- Quick Role Switcher Buttons -->
+    <div class="quick-role-bar">
+      <span style="font-size:11px; color:#94a3b8; margin-right:4px;">Beralih Peran:</span>
+      <button class="quick-role-btn active" data-role="mahasiswa" onclick="App.quickSwitchRole('mahasiswa')">👤 Mahasiswa</button>
+      <button class="quick-role-btn" data-role="kurir" onclick="App.quickSwitchRole('kurir')">🛵 Kurir</button>
+      <button class="quick-role-btn" data-role="administrator" onclick="App.quickSwitchRole('admin')">👑 Admin (Salem)</button>
+    </div>
+
+    <div class="prototype-bar-actions">
+      <label for="screen-navigator-select" style="font-size:12px; font-weight:600;">Layar:</label>
+      <select id="screen-navigator-select" class="screen-select">
+        <option value="screen-login">L-01: Login Pengguna</option>
+        <option value="screen-mahasiswa">L-02: Dashboard Mahasiswa</option>
+        <option value="screen-titip">L-03: Form Titip Barang</option>
+        <option value="screen-pesan-antar">L-04: Form Pesan Antar</option>
+        <option value="screen-lacak">L-05: Lacak Status Barang</option>
+        <option value="screen-notifikasi">L-06: Notifikasi</option>
+        <option value="screen-riwayat">L-07: Riwayat Transaksi</option>
+        <option value="screen-kurir">L-08: Dashboard Kurir</option>
+        <option value="screen-serah-terima">L-09: Verifikasi Serah-Terima</option>
+        <option value="screen-lapor">L-10: Lapor Kehilangan</option>
+        <option value="screen-rating">L-11: Beri Rating & Ulasan</option>
+        <option value="screen-admin">L-12: Dashboard Administrator</option>
+        <option value="screen-reg-mahasiswa">L-13: Registrasi Mahasiswa</option>
+        <option value="screen-verif-email">L-14: Verifikasi Email (OTP)</option>
+        <option value="screen-reg-kurir">L-15: Registrasi Kurir (Labor)</option>
+      </select>
+
+      <button id="btn-toggle-view" class="btn-toggle-view">💻 Mode Desktop</button>
+      <button onclick="App.navigateTo('screen-notifikasi')" class="btn-toggle-view">🔔 Notifikasi (<span class="notif-badge-inline notif-badge" style="position:static; display:inline-flex; width:14px; height:14px; font-size:9px;">0</span>)</button>
+      <button onclick="Auth.logout()" class="btn-toggle-view" style="color:#fca5a5; border-color:#7f1d1d;">Keluar</button>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN APP DEVICE CONTAINER (Mobile Figma Simulator)
+       ======================================================================== -->
+  <div class="app-container">
+
+    <!-- Status Bar (9:41) -->
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="status-bar-icons">
+        <span>•••</span>
+        <span>📶</span>
+        <span>🔋</span>
+      </div>
+    </div>
+
+    <!-- Scrollable Viewport -->
+    <main class="app-viewport">
+
+      <!-- ====================================================================
+           L-01: LOGIN SCREEN (UC-01) - Figure 27
+           ==================================================================== -->
+      <section id="screen-login" class="screen active">
+        <div style="font-size:12px; color:var(--text-muted); font-weight:600; text-transform:uppercase;">Akses kampus</div>
+        <div style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">SSO Universitas Klabat</div>
+
+        <div class="brand-header">
+          <div class="brand-icon">📦</div>
+          <div class="brand-name">SiTAB</div>
+        </div>
+
+        <div style="font-size:15px; font-weight:700; color:var(--text-main);">Titip aman. Antar nyaman.</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:18px;">
+          Sistem Titip Antar Barang Kampus Universitas Klabat
+        </div>
+
+        <h3 style="font-size:22px; font-weight:800; color:var(--primary-navy);">Selamat datang kembali</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">Masuk dengan akun SSO kampus Anda.</p>
+
+        <!-- Quick Demo Switcher -->
+        <div style="font-size:12px; font-weight:700; color:var(--primary-navy);">Akses demo sebagai:</div>
+        <div class="role-pills-box">
+          <button type="button" class="role-pill-btn active" data-role="mahasiswa" onclick="Auth.fillDemo('mahasiswa')">Mahasiswa</button>
+          <button type="button" class="role-pill-btn" data-role="kurir" onclick="Auth.fillDemo('kurir')">Kurir</button>
+          <button type="button" class="role-pill-btn" data-role="admin" onclick="Auth.fillDemo('admin')">Admin (Salem)</button>
+        </div>
+
+        <form id="form-login">
+          <div class="form-group">
+            <label class="form-label">Email mahasiswa / civitas <span class="required">*</span></label>
+            <input type="email" id="login-email" class="form-control" placeholder="nomor_registrasi@student.unklab.ac.id" required>
+            <div class="form-hint">Format resmi: nomor_registrasi@student.unklab.ac.id</div>
+          </div>
+
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between;">
+              <label class="form-label">Kata sandi <span class="required">*</span></label>
+              <a href="#" style="font-size:12px; color:var(--primary-teal); text-decoration:none; font-weight:600;" onclick="App.showToast('Silakan hubungi Administrator TI Salem di Gedung FIK.'); return false;">Lupa kata sandi?</a>
+            </div>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+          </div>
+
+          <div id="login-error" class="alert-box alert-danger form-error-msg"></div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top:8px;">
+            <span>Masuk</span> ➔
+          </button>
+        </form>
+
+        <div style="margin-top:14px; font-size:12px; color:var(--text-muted); text-align:center; background:#f1f5f9; padding:8px 12px; border-radius:10px;">
+          🔒 Demo: Tekan tombol <strong>Mahasiswa</strong>, <strong>Kurir</strong>, atau <strong>Admin</strong> di atas lalu klik Masuk.
+        </div>
+
+        <div style="margin-top:20px; text-align:center; font-size:13px;">
+          Belum punya akun? <a href="#" style="color:var(--primary-teal); font-weight:700; text-decoration:none;" onclick="App.navigateTo('screen-reg-mahasiswa'); return false;">Daftar akun</a>
+          <br>
+          <a href="#" style="color:var(--accent-blue); font-weight:700; text-decoration:none; font-size:12px; display:inline-block; margin-top:8px;" onclick="App.navigateTo('screen-reg-kurir'); return false;">Daftar sebagai Kurir Kampus (Labor) ➔</a>
+        </div>
+
+        <div style="margin-top:auto; padding-top:24px; text-align:center; font-size:11px; color:var(--text-light);">
+          Khusus civitas akademika UNKLAB<br>
+          Prototipe interaktif · Final Project SAD
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           L-02: DASHBOARD MAHASISWA - Figure 28
+           ==================================================================== -->
+      <section id="screen-mahasiswa" class="screen">
+        <div class="screen-header">
+          <div>
+            <div style="font-size:16px; font-weight:900; color:var(--primary-navy);">SiTAB</div>
+            <div style="font-size:11px; color:var(--text-muted);">Kampus UNKLAB</div>
+          </div>
+          <button class="notif-bell-btn" onclick="App.openNotifications()">
+            <span style="font-size:20px;">🔔</span>
+            <span class="notif-badge">0</span>
+          </button>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px; color:var(--text-muted);">Kamis, 12 November 2026</div>
+          <h2 style="font-size:22px; font-weight:800; color:var(--primary-navy);">
+            Halo, <span class="user-display-name">Kelompok Miedal</span> 👋
+          </h2>
+          <p style="font-size:13px; color:var(--text-muted);">Mau titip atau antar barang hari ini?</p>
+        </div>
+
+        <!-- Active Order Banner -->
+        <div id="active-order-banner" class="active-order-card" style="display:none;"></div>
+
+        <!-- 2 Main Action Cards -->
+        <div class="action-grid">
+          <div class="action-card" onclick="App.navigateTo('screen-titip')">
+            <div>
+              <div class="action-icon teal">📦</div>
+              <div class="action-card-title">Titip Barang</div>
+              <div class="action-card-desc">Simpan aman di loker drop point</div>
+            </div>
+            <div style="margin-top:12px; font-size:12px; font-weight:700; color:var(--primary-teal);">Mulai Titip ➔</div>
+          </div>
+
+          <div class="action-card" onclick="App.navigateTo('screen-pesan-antar')">
+            <div>
+              <div class="action-icon blue">✈️</div>
+              <div class="action-card-title">Pesan Antar</div>
+              <div class="action-card-desc">Diantar kurir mahasiswa ke tujuan</div>
+            </div>
+            <div style="margin-top:12px; font-size:12px; font-weight:700; color:var(--accent-blue);">Pesan Antar ➔</div>
+          </div>
+        </div>
+
+        <!-- Drop Point Terdekat Card (Figure 28) -->
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-size:15px; font-weight:800; color:var(--primary-navy);">Drop point loker terdekat</div>
+            <span style="font-size:12px; font-weight:700; color:var(--primary-teal);">8 / 12 tersedia</span>
+          </div>
+          <div style="font-size:13px; font-weight:700; margin-top:4px;">Gedung GK1 · Lantai 1</div>
+          <div class="locker-bars">
+            <div class="locker-bar filled"></div>
+            <div class="locker-bar filled"></div>
+            <div class="locker-bar filled"></div>
+            <div class="locker-bar filled"></div>
+            <div class="locker-bar filled"></div>
+            <div class="locker-bar filled"></div>
+            <div class="locker-bar filled"></div>
+            <div class="locker-bar filled"></div>
+            <div class="locker-bar"></div>
+            <div class="locker-bar"></div>
+            <div class="locker-bar"></div>
+            <div class="locker-bar"></div>
+          </div>
+          <div style="font-size:11px; color:var(--text-muted);">Sebelah lobi utama loker · Buka 07.00–20.00 WITA</div>
+        </div>
+
+        <!-- Recent Activity Section -->
+        <div style="margin-top:8px;">
+          <div style="font-size:15px; font-weight:800; color:var(--primary-navy); margin-bottom:8px;">Aktivitas terakhir</div>
+          <div id="mhs-recent-activity"></div>
+        </div>
+
+        <!-- Quick apply labor link -->
+        <div style="margin-top:12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:14px; padding:12px; text-align:center;">
+          <div style="font-size:12px; font-weight:700; color:#1e40af;">Ingin penghasilan tambahan di kampus?</div>
+          <a href="#" onclick="App.navigateTo('screen-reg-kurir'); return false;" style="font-size:12px; color:var(--accent-blue); font-weight:800; text-decoration:none; display:inline-block; margin-top:4px;">Daftar Kurir Mahasiswa Labor ➔</a>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           L-03: FORM TITIP BARANG (UC-02, UC-07) - Figure 29
+           ==================================================================== -->
+      <section id="screen-titip" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" onclick="App.navigateTo('screen-mahasiswa')">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <div>
+              <div style="font-size:15px; font-weight:700;">Titip barang</div>
+              <div style="font-size:11px; color:var(--text-muted); font-weight:400;">Simpan aman di drop point loker</div>
+            </div>
+          </button>
+        </div>
+
+        <h3 style="font-size:20px; font-weight:800; color:var(--primary-navy); margin-bottom:4px;">Titip dengan tenang.</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Isi detail barang sebelum meletakkannya di loker.</p>
+
+        <form id="form-titip-barang">
+          <div class="form-group">
+            <label class="form-label">Deskripsi barang <span class="required">*</span></label>
+            <textarea id="titip-deskripsi" class="form-control" rows="3" placeholder="Contoh: Buku Algoritma, sampul biru..." required>Buku Algoritma, sampul biru</textarea>
+            <div class="form-hint">Sebutkan jenis, warna, dan ciri khusus barang.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Lokasi drop point loker <span class="required">*</span></label>
+            <select id="titip-lokasi" class="form-control" required></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nama penerima / pengambil</label>
+            <input type="text" id="titip-penerima" class="form-control" value="Michelle Lumentut" placeholder="Contoh: Michelle Lumentut (atau diri sendiri)">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Foto barang <span class="required">*</span></label>
+            <div class="upload-zone" onclick="document.getElementById('titip-foto-input').click()">
+              <input type="file" id="titip-foto-input" style="display:none;" accept="image/*" onchange="App.handleFileUpload(this, 'titip-foto-preview', 'titip-foto-path', 'foto_titip')">
+              <input type="hidden" id="titip-foto-path" value="/uploads/buku-algoritma.jpg">
+              <img id="titip-foto-preview" src="/uploads/buku-algoritma.jpg" alt="Preview Foto" style="max-height:110px; display:block; margin:0 auto; border-radius:8px;">
+              <div id="titip-foto-label" style="font-size:11px; color:#64748b; margin-top:6px;">buku-algoritma.jpg · Ketuk untuk unggah/ganti foto fisik</div>
+            </div>
+            <div class="form-hint">Wajib mengunggah foto fisik barang sebelum disimpan di loker.</div>
+          </div>
+
+          <!-- Alert BR-02 -->
+          <div class="alert-box alert-warning">
+            <span>⚠️</span>
+            <div>
+              <strong>Barang yang tidak diperbolehkan:</strong><br>
+              Dilarang menitipkan uang tunai, barang berharga, makanan mudah basi, serta bahan berbahaya.
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Konfirmasi Titip Barang</button>
+        </form>
+      </section>
+
+      <!-- ====================================================================
+           L-04: FORM PESAN ANTAR (UC-03) - Figure 30
+           ==================================================================== -->
+      <section id="screen-pesan-antar" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" onclick="App.navigateTo('screen-mahasiswa')">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <div>
+              <div style="font-size:15px; font-weight:700;">Pesan antar</div>
+              <div style="font-size:11px; color:var(--text-muted); font-weight:400;">Antar barang, tanpa repot</div>
+            </div>
+          </button>
+        </div>
+
+        <h3 style="font-size:20px; font-weight:800; color:var(--primary-navy); margin-bottom:4px;">Ke mana barang diantar?</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Kurir mahasiswa siap membantu di area kampus.</p>
+
+        <form id="form-pesan-antar">
+          <div class="card" style="padding:14px; margin-bottom:14px;">
+            <div class="form-group" style="margin-bottom:10px;">
+              <label class="form-label" style="font-size:11px; text-transform:uppercase; color:var(--primary-teal);">📍 Lokasi Penjemputan <span class="required">*</span></label>
+              <select id="antar-asal" class="form-control" required></select>
+            </div>
+            <div class="form-group" style="margin-bottom:10px;">
+              <label class="form-label" style="font-size:11px; text-transform:uppercase; color:var(--accent-blue);">🏁 Gedung / Titik Tujuan <span class="required">*</span></label>
+              <select id="antar-tujuan" class="form-control" required></select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" style="font-size:11px; text-transform:uppercase; color:#0f172a;">🏢 Ruangan / Kamar / Pos Spesifik <span class="required">*</span></label>
+              <input type="text" id="antar-ruangan" class="form-control" placeholder="Contoh: Kamar 304 Asrama Crystal / Lab FIK 2 / Pos Satpam" value="Kamar 304 Asrama Crystal" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Detail barang <span class="required">*</span></label>
+            <textarea id="antar-deskripsi" class="form-control" rows="2" placeholder="Contoh: Buku referensi (2 buah), dalam tote bag krem." required>Buku referensi (2 buah), dalam tote bag krem.</textarea>
+            <div class="form-hint">Maksimal 5 kg · Barang sudah dikemas rapi.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nama penerima</label>
+            <input type="text" id="antar-penerima" class="form-control" value="Gabriella Manoppo" placeholder="Nama penerima barang">
+          </div>
+
+          <!-- Estimasi Otomatis (Figure 30) -->
+          <div class="card" style="background:#f0fdf4; border-color:#bbf7d0;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">⏱️ Estimasi Otomatis</div>
+                <div style="font-size:15px; font-weight:800; margin-top:2px;">10–15 menit</div>
+                <div style="font-size:11px; color:#166534;">Rute antar kampus UNKLAB ± 650 m</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:11px; color:#15803d; font-weight:700;">Biaya Layanan</div>
+                <div style="font-size:18px; font-weight:900; color:#15803d;">Rp5.000</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="padding:14px; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:700; font-size:14px;">Total Biaya:</span>
+              <span style="font-weight:900; font-size:18px; color:var(--primary-navy);">Rp5.000</span>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+              Metode: Bayar tunai kepada kurir saat barang diterima di ruangan/pos.
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Konfirmasi Pesanan</button>
+        </form>
+      </section>
+
+      <!-- ====================================================================
+           L-05: LACAK STATUS BARANG (UC-05) - Figure 31
+           ==================================================================== -->
+      <section id="screen-lacak" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" onclick="App.navigateTo('screen-mahasiswa')">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <div>
+              <div style="font-size:15px; font-weight:700;">Lacak barang</div>
+              <div style="font-size:11px; color:var(--text-muted); font-weight:400;">Detail pengiriman real-time</div>
+            </div>
+          </button>
+        </div>
+
+        <div id="lacak-content-wrapper"></div>
+      </section>
+
+      <!-- ====================================================================
+           L-06: NOTIFIKASI SISTEM (UC-06) - Figure 32
+           ==================================================================== -->
+      <section id="screen-notifikasi" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" onclick="App.navigateTo('screen-mahasiswa')">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <div>
+              <div style="font-size:15px; font-weight:700;">Notifikasi</div>
+              <div style="font-size:11px; color:var(--text-muted); font-weight:400;">Pemberitahuan status real-time</div>
+            </div>
+          </button>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div>
+            <h3 style="font-size:20px; font-weight:800; color:var(--primary-navy); margin-bottom:2px;">Pusat Pemberitahuan</h3>
+            <p style="font-size:12px; color:var(--text-muted);">Pembaruan status barang & operasional</p>
+          </div>
+          <button class="btn btn-outline" style="padding:4px 10px; font-size:11px; width:auto;" onclick="App.markAllNotificationsRead()">Tandai Dibaca</button>
+        </div>
+
+        <div id="full-screen-notif-list" style="display:flex; flex-direction:column; gap:10px;">
+          <!-- Loaded dynamically -->
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           L-07: RIWAYAT TRANSAKSI (UC-08) - Figure 33
+           ==================================================================== -->
+      <section id="screen-riwayat" class="screen">
+        <div class="screen-header">
+          <div>
+            <h3 class="screen-title">Riwayat</h3>
+            <p class="screen-subtitle">Penitipan dan pengantaran</p>
+          </div>
+        </div>
+
+        <div class="role-pills-box" style="margin-bottom:14px;">
+          <button type="button" class="role-pill-btn active" onclick="App.loadRiwayat('Semua')">Semua</button>
+          <button type="button" class="role-pill-btn" onclick="App.loadRiwayat('Titip')">Titip Loker</button>
+          <button type="button" class="role-pill-btn" onclick="App.loadRiwayat('Antar')">Pesan Antar</button>
+        </div>
+
+        <div id="riwayat-list-container"></div>
+      </section>
+
+      <!-- ====================================================================
+           L-08: DASHBOARD KURIR (UC-01, UC-09, UC-10) - Figure 34
+           ==================================================================== -->
+      <section id="screen-kurir" class="screen">
+        <div class="screen-header">
+          <div>
+            <div style="font-size:18px; font-weight:800; color:var(--primary-navy);">Ruang kurir</div>
+            <div style="font-size:11px; color:var(--text-muted);">SiTAB · Mitra mahasiswa labor UNKLAB</div>
+          </div>
+          <button class="notif-bell-btn" onclick="App.openNotifications()">
+            <span style="font-size:20px;">🔔</span>
+            <span class="notif-badge">0</span>
+          </button>
+        </div>
+
+        <h3 style="font-size:22px; font-weight:800; color:var(--primary-navy); margin-bottom:4px;">
+          Siap antar, <span class="user-display-name">Daniel</span>?
+        </h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">Terima kasih sudah membantu teman kampus.</p>
+
+        <!-- Shift Toggle Card (Figure 34) -->
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:14px; font-weight:800; color:var(--primary-teal);">Shift aktif</div>
+            <div style="font-size:12px; color:var(--text-muted);">Kamis · 13.00–17.00 WITA</div>
+          </div>
+          <input type="checkbox" id="kurir-shift-toggle" checked style="width:24px; height:24px; accent-color:var(--primary-teal); cursor:pointer;">
+        </div>
+
+        <!-- Honor Minggu Ini -->
+        <div class="card card-navy">
+          <div class="order-badge">TOTAL HONOR MINGGU INI</div>
+          <div id="kurir-honor-val" style="font-size:28px; font-weight:900; margin:6px 0;">Rp125.000</div>
+          <div style="font-size:12px; color:#cbd5e1;">Honor per tugas selesai: Rp5.000 (transparan)</div>
+        </div>
+
+        <h4 style="font-size:16px; font-weight:800; color:var(--primary-navy); margin:12px 0 8px 0;">Tugas Pengantaran</h4>
+        <div id="kurir-tasks-container"></div>
+
+        <!-- Shift Schedule List -->
+        <div class="card" style="margin-top:8px;">
+          <div style="font-size:14px; font-weight:800; margin-bottom:8px;">Jadwal shift minggu ini</div>
+          <div style="font-size:12px; border-bottom:1px solid #f1f5f9; padding:6px 0; display:flex; justify-content:space-between;">
+            <span>Kamis, 12 Nov (13.00–17.00 WITA)</span>
+            <strong style="color:var(--primary-teal);">Aktif</strong>
+          </div>
+          <div style="font-size:12px; border-bottom:1px solid #f1f5f9; padding:6px 0; display:flex; justify-content:space-between;">
+            <span>Jumat, 13 Nov (09.00–12.00 WITA)</span>
+            <span style="color:#64748b;">Terjadwal</span>
+          </div>
+          <div style="font-size:12px; padding:6px 0; display:flex; justify-content:space-between;">
+            <span>Minggu, 15 Nov (13.00–16.00 WITA)</span>
+            <span style="color:#64748b;">Terjadwal</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           L-09: VERIFIKASI SERAH-TERIMA KURIR (UC-07) - Figure 35
+           ==================================================================== -->
+      <section id="screen-serah-terima" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" onclick="App.navigateTo('screen-kurir')">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <div>
+              <div style="font-size:15px; font-weight:700;">Verifikasi Serah-Terima</div>
+              <div style="font-size:11px; color:var(--text-muted); font-weight:400;">Penyelesaian tugas pengantaran</div>
+            </div>
+          </button>
+        </div>
+
+        <h3 style="font-size:20px; font-weight:800; color:var(--primary-navy); margin-bottom:4px;">Serah-Terima Barang</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">Masukkan 4 digit kode OTP dari penerima dan unggah foto serah-terima fisik.</p>
+
+        <form id="form-screen-serah-terima">
+          <div class="form-group">
+            <label class="form-label">Tugas pengantaran aktif <span class="required">*</span></label>
+            <select id="screen-st-order-select" class="form-control" onchange="App.onSelectSerahTerimaOrder(this.value)" required>
+              <option value="">-- Pilih Pesanan Aktif --</option>
+            </select>
+          </div>
+
+          <div id="screen-st-order-preview" class="card card-navy" style="margin-bottom:14px; display:none;">
+            <!-- Order details dynamic -->
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Kode OTP Penerima (4 Digit) <span class="required">*</span></label>
+            <input type="text" id="screen-st-otp" class="form-control" style="font-size:26px; letter-spacing:6px; text-align:center; font-weight:800; color:var(--primary-teal);" maxlength="4" placeholder="••••" required>
+            <div id="screen-st-helper" class="form-hint" style="color:var(--accent-blue); font-weight:600; margin-top:4px;"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Foto bukti serah-terima fisik <span class="required">*</span></label>
+            <div class="upload-zone" onclick="document.getElementById('screen-st-foto-input').click()">
+              <input type="file" id="screen-st-foto-input" style="display:none;" accept="image/*" onchange="App.handleFileUpload(this, 'screen-st-foto-preview', 'screen-st-foto-path', 'bukti_serahterima')">
+              <input type="hidden" id="screen-st-foto-path" value="/uploads/bukti-serahterima.jpg">
+              <img id="screen-st-foto-preview" src="/uploads/bukti-serahterima.jpg" alt="Bukti Foto" style="max-height:120px; display:block; margin:0 auto; border-radius:8px;">
+              <div id="screen-st-foto-label" style="font-size:11px; color:#64748b; margin-top:6px;">bukti-serahterima.jpg · Ketuk untuk unggah/ambil foto kamera</div>
+            </div>
+            <div class="form-hint">Ambil foto barang saat diserahkan langsung ke tangan penerima.</div>
+          </div>
+
+          <button type="submit" class="btn btn-success" style="margin-top:14px;">✅ Verifikasi & Selesaikan Pengantaran</button>
+        </form>
+      </section>
+
+      <!-- ====================================================================
+           L-10: LAPOR KEHILANGAN (UC-11) - Figure 36
+           ==================================================================== -->
+      <section id="screen-lapor" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" onclick="App.navigateTo('screen-lacak')">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <div>
+              <div style="font-size:15px; font-weight:700;">Lapor kehilangan</div>
+              <div style="font-size:11px; color:var(--text-muted); font-weight:400;">Klaim barang bermasalah</div>
+            </div>
+          </button>
+        </div>
+
+        <h3 style="font-size:20px; font-weight:800; color:var(--primary-navy); margin-bottom:4px;">Barang bermasalah?</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Isi laporan agar administrator dapat meninjau.</p>
+
+        <form id="form-lapor-kehilangan">
+          <div class="form-group">
+            <label class="form-label">Nomor pesanan yang bermasalah <span class="required">*</span></label>
+            <select id="lapor-order-select" class="form-control" required>
+              <option value="1">STB-0248 · Buku referensi (2 buah)</option>
+              <option value="2">STB-0252 · Buku Algoritma</option>
+              <option value="3">STB-0001 · Dokumen tugas akhir</option>
+              <option value="4">STB-0002 · Kabel charger</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Kronologi kejadian <span class="required">*</span></label>
+            <textarea id="lapor-deskripsi" class="form-control" rows="4" placeholder="Ceritakan kapan dan di mana barang terakhir terlihat..." required></textarea>
+          </div>
+
+          <div class="alert-box alert-danger">
+            <span>⚠️</span>
+            <div>
+              <strong>Laporan ditinjau administrator Salem:</strong><br>
+              Sertakan kronologi jelas agar klaim dapat diproses lebih cepat oleh Kemahasiswaan.
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Kirim Laporan</button>
+        </form>
+      </section>
+
+      <!-- ====================================================================
+           L-11: BERI RATING DAN ULASAN (UC-13) - Figure 37
+           ==================================================================== -->
+      <section id="screen-rating" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" onclick="App.navigateTo('screen-mahasiswa')">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <div>
+              <div style="font-size:15px; font-weight:700;">Beri rating</div>
+              <div style="font-size:11px; color:var(--text-muted); font-weight:400;">Nilai kinerja kurir</div>
+            </div>
+          </button>
+        </div>
+
+        <h3 style="font-size:20px; font-weight:800; color:var(--primary-navy); margin-bottom:4px;">Bagaimana pengantarannya?</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Penilaianmu membantu kurir mahasiswa meningkatkan layanan.</p>
+
+        <form id="form-beri-rating">
+          <input type="hidden" id="rating-order-id" value="4">
+          <input type="hidden" id="rating-star-value" value="5">
+
+          <div class="card" style="text-align:center;">
+            <div style="font-size:16px; font-weight:800; color:var(--primary-navy);">Daniel Rantung</div>
+            <div style="font-size:12px; color:var(--text-muted);">⭐ 4.9 · Mitra Kurir Mahasiswa UNKLAB</div>
+
+            <div class="star-rating">
+              <button type="button" class="star-btn active" data-val="1">★</button>
+              <button type="button" class="star-btn active" data-val="2">★</button>
+              <button type="button" class="star-btn active" data-val="3">★</button>
+              <button type="button" class="star-btn active" data-val="4">★</button>
+              <button type="button" class="star-btn active" data-val="5">★</button>
+            </div>
+            <div style="font-size:12px; font-weight:700; color:var(--primary-teal);">Bagus sekali!</div>
+          </div>
+
+          <div style="font-size:13px; font-weight:700; margin:8px 0 4px 0;">Apa yang berkesan?</div>
+          <div class="chips-container">
+            <div class="chip active">Tepat waktu</div>
+            <div class="chip active">Ramah</div>
+            <div class="chip active">Barang aman</div>
+            <div class="chip">Komunikatif</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Ulasan (opsional)</label>
+            <textarea id="rating-komentar" class="form-control" rows="3" placeholder="Tulis pengalaman pengantaran Anda..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Kirim Ulasan</button>
+        </form>
+      </section>
+
+      <!-- ====================================================================
+           L-12: DASHBOARD ADMINISTRATOR (UC-01, UC-04, UC-12, UC-14, UC-15) - Figure 38
+           ==================================================================== -->
+      <section id="screen-admin" class="screen">
+        <div class="screen-header">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div style="background:#059669; color:white; border-radius:8px; padding:4px 8px; font-size:12px; font-weight:900;">⚙️</div>
+            <div>
+              <div style="font-size:16px; font-weight:900; color:var(--primary-navy);">SiTAB Admin</div>
+              <div style="font-size:11px; color:var(--text-muted);">Panel Administrator Kampus</div>
+            </div>
+          </div>
+          <button class="btn btn-outline" style="padding:6px 10px; font-size:11px;" onclick="Auth.logout()">Keluar 🚪</button>
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Administrator Kemahasiswaan</div>
+            <div style="font-size:16px; font-weight:800; color:var(--primary-navy);" class="user-display-name">Salem, Jovitly Mike</div>
+          </div>
+          <button class="btn btn-outline" style="padding:4px 8px; font-size:11px; width:auto;" onclick="App.resetDatabaseSeed()">🔄 Reset Data Awal</button>
+        </div>
+
+        <!-- 4 Metric Cards (Figure 38) -->
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div id="admin-stat-transaksi" class="stat-value">12</div>
+            <div class="stat-label">Total Transaksi</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🛵</div>
+            <div id="admin-stat-kurir" class="stat-value">2</div>
+            <div class="stat-label">Kurir On-Duty</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🗄️</div>
+            <div id="admin-stat-loker" class="stat-value">67%</div>
+            <div class="stat-label">Utilisasi Loker GK1</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🚨</div>
+            <div id="admin-stat-laporan" class="stat-value" style="color:#dc2626;">1</div>
+            <div class="stat-label">Laporan Tertunda</div>
+          </div>
+        </div>
+
+        <!-- Admin Navigation Tabs -->
+        <div class="tab-header">
+          <button class="tab-btn active" onclick="
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelectorAll('.admin-tab-pane').forEach(p => p.style.display = 'none');
+            document.getElementById('admin-pane-monitoring').style.display = 'block';
+          ">📊 Monitoring</button>
+          <button class="tab-btn" onclick="
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelectorAll('.admin-tab-pane').forEach(p => p.style.display = 'none');
+            document.getElementById('admin-pane-kurir').style.display = 'block';
+          ">🛵 Kurir (Labor)</button>
+          <button class="tab-btn" onclick="
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelectorAll('.admin-tab-pane').forEach(p => p.style.display = 'none');
+            document.getElementById('admin-pane-laporan').style.display = 'block';
+          ">⚠️ Laporan Klaim</button>
+          <button class="tab-btn" onclick="
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelectorAll('.admin-tab-pane').forEach(p => p.style.display = 'none');
+            document.getElementById('admin-pane-pengguna').style.display = 'block';
+          ">👥 Pengguna</button>
+        </div>
+
+        <!-- Tab Pane 1: Monitoring / All Orders -->
+        <div id="admin-pane-monitoring" class="admin-tab-pane">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+            <h4 style="font-size:14px; font-weight:800; color:var(--primary-navy);">Semua Pesanan Logistik</h4>
+            <div style="display:flex; gap:4px; flex-wrap:wrap;">
+              <button class="filter-chip-btn active" data-filter="Semua" onclick="App.setOrderFilter('Semua')">Semua</button>
+              <button class="filter-chip-btn" data-filter="Menunggu" onclick="App.setOrderFilter('Menunggu')">Menunggu</button>
+              <button class="filter-chip-btn" data-filter="Proses" onclick="App.setOrderFilter('Proses')">Proses</button>
+              <button class="filter-chip-btn" data-filter="Selesai" onclick="App.setOrderFilter('Selesai')">Selesai</button>
+              <button class="filter-chip-btn" data-filter="Titip" onclick="App.setOrderFilter('Titip')">Titip Loker</button>
+              <button class="filter-chip-btn" data-filter="Antar" onclick="App.setOrderFilter('Antar')">Pesan Antar</button>
+            </div>
+          </div>
+
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Resi</th>
+                  <th>Pemohon</th>
+                  <th>Rute / Pos</th>
+                  <th>Kurir</th>
+                  <th>Status</th>
+                  <th>Aksi Admin</th>
+                </tr>
+              </thead>
+              <tbody id="admin-table-orders"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab Pane 2: Kurir Approval & List -->
+        <div id="admin-pane-kurir" class="admin-tab-pane" style="display:none;">
+          <h4 style="font-size:14px; font-weight:800; color:var(--primary-navy); margin-bottom:8px;">Pengajuan Kurir Baru (Menunggu Verifikasi)</h4>
+          <div id="admin-kurir-pending"></div>
+
+          <h4 style="font-size:14px; font-weight:800; color:var(--primary-navy); margin:16px 0 8px 0;">Daftar Seluruh Kurir Terdaftar</h4>
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nama Kurir</th>
+                  <th>Rating</th>
+                  <th>Status Ketersediaan</th>
+                  <th>Verifikasi</th>
+                </tr>
+              </thead>
+              <tbody id="admin-kurir-table"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab Pane 3: Laporan Kehilangan -->
+        <div id="admin-pane-laporan" class="admin-tab-pane" style="display:none;">
+          <h4 style="font-size:14px; font-weight:800; color:var(--primary-navy); margin-bottom:8px;">Laporan Kehilangan / Klaim Masuk</h4>
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Resi</th>
+                  <th>Pelapor</th>
+                  <th>Deskripsi</th>
+                  <th>Status</th>
+                  <th>Aksi Tindak Lanjut</th>
+                </tr>
+              </thead>
+              <tbody id="admin-table-reports"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab Pane 4: Pengguna -->
+        <div id="admin-pane-pengguna" class="admin-tab-pane" style="display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <h4 style="font-size:14px; font-weight:800; color:var(--primary-navy);">Kelola Akun Mahasiswa & Kurir</h4>
+            <button class="btn btn-primary" style="padding:4px 10px; font-size:11px; width:auto;" onclick="document.getElementById('modal-add-user').classList.add('active')">➕ Tambah Akun</button>
+          </div>
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nama</th>
+                  <th>Email Kampus</th>
+                  <th>Peran</th>
+                  <th>Status Akun</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="admin-table-users"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           L-13: REGISTRASI MAHASISWA (UC-16) - Figure 39
+           ==================================================================== -->
+      <section id="screen-reg-mahasiswa" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" onclick="App.navigateTo('screen-login')">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <div>
+              <div style="font-size:15px; font-weight:700;">Buat akun</div>
+              <div style="font-size:11px; color:var(--text-muted); font-weight:400;">Registrasi mahasiswa UNKLAB</div>
+            </div>
+          </button>
+        </div>
+
+        <h3 style="font-size:20px; font-weight:800; color:var(--primary-navy); margin-bottom:4px;">Daftar akun SiTAB</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Gunakan email kampus UNKLAB Anda.</p>
+
+        <form id="form-reg-mahasiswa">
+          <div class="form-group">
+            <label class="form-label">Nama lengkap <span class="required">*</span></label>
+            <input type="text" id="reg-mhs-nama" class="form-control" placeholder="Nama sesuai kartu mahasiswa" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email kampus <span class="required">*</span></label>
+            <input type="email" id="reg-mhs-email" class="form-control" placeholder="12410601@student.unklab.ac.id" required>
+            <div class="form-hint">Format: nomor_registrasi@student.unklab.ac.id</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nomor telepon <span class="required">*</span></label>
+            <input type="tel" id="reg-mhs-phone" class="form-control" placeholder="081234567890" required>
+            <div class="form-hint">Hanya angka, 10–15 digit</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Password <span class="required">*</span></label>
+            <input type="password" id="reg-mhs-pass" class="form-control" placeholder="Minimal 8 karakter" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Konfirmasi password <span class="required">*</span></label>
+            <input type="password" id="reg-mhs-conf" class="form-control" placeholder="Ulangi password" required>
+          </div>
+
+          <div id="reg-mhs-error" class="alert-box alert-danger form-error-msg"></div>
+
+          <div style="text-align:center; font-size:12px; margin-bottom:14px;">
+            Sudah punya akun? <a href="#" style="color:var(--primary-teal); font-weight:700; text-decoration:none;" onclick="App.navigateTo('screen-login'); return false;">Masuk</a>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Daftar</button>
+        </form>
+      </section>
+
+      <!-- ====================================================================
+           L-14: VERIFIKASI EMAIL (UC-17) - Figure 40
+           ==================================================================== -->
+      <section id="screen-verif-email" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" onclick="App.navigateTo('screen-login')">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <div>
+              <div style="font-size:15px; font-weight:700;">Verifikasi email</div>
+              <div style="font-size:11px; color:var(--text-muted); font-weight:400;">Langkah terakhir registrasi</div>
+            </div>
+          </button>
+        </div>
+
+        <div style="text-align:center; margin:10px 0 16px 0;">
+          <div style="width:48px; height:48px; border-radius:50%; background:#dcfce7; color:#15803d; font-size:24px; display:inline-flex; align-items:center; justify-content:center; margin-bottom:8px;">✓</div>
+          <h3 style="font-size:22px; font-weight:800; color:var(--primary-navy);">Cek email kampus Anda</h3>
+          <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">
+            Kode 6 digit dikirim ke email kampus Anda. Kode berlaku 15 menit.
+          </p>
+        </div>
+
+        <!-- Simulated code box for convenient prototype test -->
+        <div id="verif-demo-code-box" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:10px; font-size:12px; text-align:center; margin-bottom:12px; display:none;"></div>
+
+        <form id="form-verif-email">
+          <input type="hidden" id="verif-email-input" value="">
+
+          <div class="otp-inputs">
+            <input type="text" maxlength="1" class="otp-digit otp-digit-input" required autofocus>
+            <input type="text" maxlength="1" class="otp-digit otp-digit-input" required>
+            <input type="text" maxlength="1" class="otp-digit otp-digit-input" required>
+            <input type="text" maxlength="1" class="otp-digit otp-digit-input" required>
+            <input type="text" maxlength="1" class="otp-digit otp-digit-input" required>
+            <input type="text" maxlength="1" class="otp-digit otp-digit-input" required>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:14px;">
+            <span>Sisa percobaan: 5</span>
+            <span>Kode kedaluwarsa dalam 14:52</span>
+          </div>
+
+          <div style="text-align:center; font-size:12px; margin-bottom:16px;">
+            Belum menerima kode? <a href="#" id="btn-resend-otp" style="color:var(--primary-teal); font-weight:700; text-decoration:none;">Kirim ulang kode</a>
+          </div>
+
+          <div id="verif-error" class="alert-box alert-danger form-error-msg"></div>
+
+          <div class="alert-box alert-success" style="font-size:11px;">
+            Setelah kode benar, akun menjadi aktif dan Anda diarahkan ke halaman Masuk.
+          </div>
+
+          <button type="submit" class="btn btn-primary">Verifikasi</button>
+        </form>
+      </section>
+
+      <!-- ====================================================================
+           L-15: REGISTRASI MAHASISWA KURIR (UC-18) - Figure 41
+           ==================================================================== -->
+      <section id="screen-reg-kurir" class="screen">
+        <div class="screen-header">
+          <button class="back-btn" onclick="App.navigateTo('screen-login')">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <div>
+              <div style="font-size:15px; font-weight:700;">Daftar kurir</div>
+              <div style="font-size:11px; color:var(--text-muted); font-weight:400;">Mahasiswa labor · Mitra pengantar</div>
+            </div>
+          </button>
+        </div>
+
+        <h3 style="font-size:20px; font-weight:800; color:var(--primary-navy); margin-bottom:4px;">Jadi kurir kampus.</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Ajukan diri, lalu tunggu verifikasi administrator.</p>
+
+        <form id="form-reg-kurir">
+          <div style="font-size:13px; font-weight:800; color:var(--primary-navy); margin-bottom:8px;">Data akun</div>
+
+          <div class="form-group">
+            <label class="form-label">Nama lengkap <span class="required">*</span></label>
+            <input type="text" id="reg-kurir-nama" class="form-control" placeholder="Nama sesuai kartu mahasiswa" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email kampus <span class="required">*</span></label>
+            <input type="email" id="reg-kurir-email" class="form-control" placeholder="12410601@student.unklab.ac.id" required>
+            <div class="form-hint">Format: nomor_registrasi@student.unklab.ac.id</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nomor telepon <span class="required">*</span></label>
+            <input type="tel" id="reg-kurir-phone" class="form-control" placeholder="081234567890" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Password <span class="required">*</span></label>
+            <input type="password" id="reg-kurir-pass" class="form-control" placeholder="Minimal 8 karakter" value="pass123" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Konfirmasi password <span class="required">*</span></label>
+            <input type="password" id="reg-kurir-conf" class="form-control" placeholder="Ulangi password" value="pass123" required>
+          </div>
+
+          <div style="font-size:13px; font-weight:800; color:var(--primary-navy); margin:14px 0 8px 0;">Jadwal ketersediaan</div>
+          <div class="form-group">
+            <label class="form-label">Pilih hari shift <span class="required">*</span></label>
+            <select id="kurir-shift-hari" class="form-control">
+              <option value="Senin">Senin</option>
+              <option value="Selasa">Selasa</option>
+              <option value="Rabu">Rabu</option>
+              <option value="Kamis" selected>Kamis</option>
+              <option value="Jumat">Jumat</option>
+              <option value="Minggu">Minggu</option>
+            </select>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="form-group">
+              <label class="form-label">Jam mulai</label>
+              <input type="text" id="kurir-shift-mulai" class="form-control" value="13.00">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Jam selesai</label>
+              <input type="text" id="kurir-shift-selesai" class="form-control" value="17.00">
+            </div>
+          </div>
+
+          <div class="card" style="background:#f0fdf4; border-color:#bbf7d0; padding:12px; margin-bottom:12px;">
+            <div style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Shift Terpilih</div>
+            <div style="font-size:13px; font-weight:700; margin-top:2px;">Kamis · 13.00–17.00 WITA</div>
+            <div style="font-size:11px; color:#166534;">Minimal satu shift dan tidak boleh bentrok.</div>
+          </div>
+
+          <div style="display:flex; align-items:flex-start; gap:8px; margin-bottom:14px;">
+            <input type="checkbox" id="reg-kurir-etik" required style="width:18px; height:18px; accent-color:var(--primary-teal); margin-top:2px;">
+            <label for="reg-kurir-etik" style="font-size:12px;">
+              Saya menyetujui <strong>Kode Etik Kurir SiTAB</strong> dan mematuhi batas wilayah kampus UNKLAB.
+            </label>
+          </div>
+
+          <div id="reg-kurir-error" class="alert-box alert-danger form-error-msg"></div>
+
+          <div class="alert-box alert-warning" style="font-size:11px;">
+            Peran kurir aktif setelah administrator menyetujui pengajuan Anda.
+          </div>
+
+          <button type="submit" class="btn btn-primary">Daftar sebagai Kurir</button>
+        </form>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar (Figure 28, 31, 33, 34) -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-target="screen-mahasiswa" onclick="App.navigateTo('screen-mahasiswa')">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span>Beranda</span>
+      </button>
+
+      <button class="nav-item" data-target="screen-pesan-antar" onclick="App.navigateTo('screen-pesan-antar')">
+        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        <span>Barang</span>
+      </button>
+
+      <button class="nav-item" data-target="screen-riwayat" onclick="App.navigateTo('screen-riwayat')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Riwayat</span>
+      </button>
+
+      <button class="nav-item" data-target="screen-login" onclick="Auth.logout()">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Profil</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- ========================================================================
+       MODALS: Ambil Mandiri Loker, Serah-Terima Kurir, Penugasan, Detail, Add User
+       ======================================================================== -->
+
+  <!-- 1. Modal Ambil Mandiri Loker (Titip Barang) -->
+  <div id="modal-ambil-mandiri" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h4 style="font-size:16px; font-weight:800; color:var(--primary-navy);">🔓 Pengambilan Mandiri di Loker</h4>
+        <button onclick="App.closeModal('modal-ambil-mandiri')" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
+        Masukkan kode OTP 4 digit untuk membuka loker drop point dan mengambil barang Anda kembali.
+      </p>
+
+      <div id="modal-am-helper" style="font-size:12px; background:#eff6ff; border:1px solid #bfdbfe; padding:8px 12px; border-radius:10px; margin-bottom:12px;"></div>
+
+      <input type="hidden" id="modal-am-id" value="">
+
+      <div class="form-group">
+        <label class="form-label">Kode OTP 4 Digit Pengambilan <span class="required">*</span></label>
+        <input type="text" id="modal-am-otp" class="form-control" placeholder="Contoh: 5123" maxlength="4" style="font-size:24px; font-weight:800; letter-spacing:4px; text-align:center;" required>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <button class="btn btn-outline" onclick="App.closeModal('modal-ambil-mandiri')">Batal</button>
+        <button class="btn btn-success" onclick="App.submitAmbilMandiri()">Konfirmasi Ambil & Selesai</button>
+=======
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>SiTAB — Sistem Titip Antar Barang UNKLAB</title>
@@ -1817,10 +2864,140 @@
             </tbody>
           </table>
         </div>
+>>>>>>> 2e27fd8a28af4990ea3dad9dd274e50d922d6e14
       </div>
     </div>
   </div>
 
+<<<<<<< HEAD
+  <!-- 2. Modal Serah-Terima Kurir (Pesan Antar L-09) - Figure 35 -->
+  <div id="modal-serah-terima" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h4 style="font-size:16px; font-weight:800; color:var(--primary-navy);">Verifikasi Serah-Terima Pengantaran</h4>
+        <button onclick="App.closeModal('modal-serah-terima')" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
+        Minta kode OTP 4 digit dari pemesan/penerima di ruangan tujuan atau pos untuk menyelesaikan pengantaran.
+      </p>
+
+      <div id="modal-st-helper" style="font-size:12px; background:#eff6ff; border:1px solid #bfdbfe; padding:8px 12px; border-radius:10px; margin-bottom:12px;"></div>
+
+      <input type="hidden" id="modal-st-id" value="">
+
+      <div class="form-group">
+        <label class="form-label">Kode OTP Penerima <span class="required">*</span></label>
+        <input type="text" id="modal-st-otp" class="form-control" placeholder="Contoh: 4829" maxlength="4" style="font-size:24px; font-weight:800; letter-spacing:4px; text-align:center;" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Foto bukti penyerahan fisik barang <span class="required">*</span></label>
+        <div class="upload-zone" onclick="document.getElementById('modal-st-foto-input').click()">
+          <input type="file" id="modal-st-foto-input" style="display:none;" accept="image/*" onchange="App.handleFileUpload(this, 'modal-st-foto-preview', 'modal-st-foto-path', 'bukti_serahterima')">
+          <input type="hidden" id="modal-st-foto-path" value="/uploads/bukti-serahterima.jpg">
+          <img id="modal-st-foto-preview" src="/uploads/bukti-serahterima.jpg" alt="Bukti" style="max-height:100px; display:block; margin:0 auto; border-radius:8px;">
+          <div id="modal-st-foto-label" style="font-size:11px; color:#64748b; margin-top:6px;">bukti-serahterima.jpg · Ketuk untuk unggah/ganti foto bukti</div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <button class="btn btn-outline" onclick="App.closeModal('modal-serah-terima')">Batal</button>
+        <button class="btn btn-primary" onclick="App.submitSerahTerima()">Konfirmasi Serah-Terima Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Modal Manual Courier Assignment (Admin L-12) -->
+  <div id="modal-assign" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h4 style="font-size:16px; font-weight:800; color:var(--primary-navy);">Tugaskan Kurir Kampus</h4>
+        <button onclick="App.closeModal('modal-assign')" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <input type="hidden" id="modal-assign-id" value="">
+
+      <div class="form-group">
+        <label class="form-label">Pilih Kurir yang Tersedia / On-Duty</label>
+        <select id="modal-assign-kurir" class="form-control"></select>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <button class="btn btn-outline" onclick="App.closeModal('modal-assign')">Batal</button>
+        <button class="btn btn-primary" onclick="App.submitAssign()">Tugaskan Kurir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Modal Order Detail Audit Trail (Admin L-12) -->
+  <div id="modal-order-detail" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h4 style="font-size:16px; font-weight:800; color:var(--primary-navy);">Detail Audit Log Pesanan</h4>
+        <button onclick="App.closeModal('modal-order-detail')" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <div id="modal-order-detail-content"></div>
+
+      <button class="btn btn-outline" style="margin-top:14px;" onclick="App.closeModal('modal-order-detail')">Tutup</button>
+    </div>
+  </div>
+
+  <!-- 5. Modal Tambah Pengguna Baru (Admin L-12) -->
+  <div id="modal-add-user" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h4 style="font-size:16px; font-weight:800; color:var(--primary-navy);">Tambah Akun Pengguna</h4>
+        <button onclick="App.closeModal('modal-add-user')" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <form id="form-add-user">
+        <div class="form-group">
+          <label class="form-label">Nama Lengkap <span class="required">*</span></label>
+          <input type="text" id="add-user-nama" class="form-control" placeholder="Nama mahasiswa/staf" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Kampus UNKLAB <span class="required">*</span></label>
+          <input type="email" id="add-user-email" class="form-control" placeholder="nomor_registrasi@student.unklab.ac.id" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nomor Telepon</label>
+          <input type="tel" id="add-user-phone" class="form-control" placeholder="081234567890">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Peran Akun <span class="required">*</span></label>
+          <select id="add-user-peran" class="form-control">
+            <option value="mahasiswa">Mahasiswa</option>
+            <option value="kurir">Kurir</option>
+            <option value="administrator">Administrator</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:14px;">
+          <button type="button" class="btn btn-outline" onclick="App.closeModal('modal-add-user')">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Akun</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6. Modal Notifikasi (L-06) - Figure 32 -->
+  <div id="modal-notifications" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h4 style="font-size:16px; font-weight:800; color:var(--primary-navy);">🔔 Notifikasi Sistem</h4>
+        <button onclick="App.closeModal('modal-notifications')" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <div id="modal-notif-list"></div>
+
+      <button class="btn btn-outline" style="margin-top:14px;" onclick="App.closeModal('modal-notifications')">Tutup</button>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+=======
   <!-- Bottom Nav Admin -->
   <div class="bottom-nav">
     <button class="nav-tab active" onclick="switchAdminTab('monitoring')">
@@ -2865,5 +4042,6 @@ document.addEventListener('keydown', e => {
   }
 });
 </script>
+>>>>>>> 2e27fd8a28af4990ea3dad9dd274e50d922d6e14
 </body>
 </html>

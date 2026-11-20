@@ -1,0 +1,44 @@
+[
+  {
+    "id_jadwal": 4,
+    "id_kurir": 2,
+    "hari": "Senin",
+    "jam_mulai": "10:00",
+    "jam_selesai": "15:00"
+  },
+  {
+    "id_jadwal": 5,
+    "id_kurir": 1,
+    "hari": "Senin",
+    "jam_mulai": "08:00",
+    "jam_selesai": "12:00"
+  },
+  {
+    "id_jadwal": 6,
+    "id_kurir": 1,
+    "hari": "Kamis",
+    "jam_mulai": "13:00",
+    "jam_selesai": "17:00"
+  },
+  {
+    "id_jadwal": 7,
+    "id_kurir": 3,
+    "hari": "Senin",
+    "jam_mulai": "08:00",
+    "jam_selesai": "12:00"
+  },
+  {
+    "id_jadwal": 8,
+    "id_kurir": 4,
+    "hari": "Rabu",
+    "jam_mulai": "13:00",
+    "jam_selesai": "17:00"
+  },
+  {
+    "id_jadwal": 9,
+    "id_kurir": 5,
+    "hari": "Jumat",
+    "jam_mulai": "13:00",
+    "jam_selesai": "16:00"
+  }
+]

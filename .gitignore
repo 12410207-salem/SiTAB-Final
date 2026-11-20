@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+node_modules/
+.DS_Store
+*.log
+npm-debug.log*
+=======
 # Dependencies
 node_modules/
 npm-debug.log*
@@ -24,3 +30,4 @@ desktop.ini
 dist/
 tmp/
 *.tmp
+>>>>>>> 2e27fd8a28af4990ea3dad9dd274e50d922d6e14

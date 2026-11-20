@@ -1,0 +1,18 @@
+[
+  {
+    "id_ulasan": 1,
+    "id_permintaan": 4,
+    "id_kurir": 1,
+    "id_pemberi": 6,
+    "rating": 5,
+    "komentar": "Tepat waktu, ramah, dan barang aman sekali sampai tujuan. Terima kasih kurir Samuel!"
+  },
+  {
+    "id_ulasan": 2,
+    "id_permintaan": 6,
+    "id_kurir": 1,
+    "id_pemberi": 5,
+    "rating": 5,
+    "komentar": "Pengantaran sangat cepat dan barang sampai tanpa cacat!"
+  }
+]

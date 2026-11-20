@@ -1,0 +1,44 @@
+[
+  {
+    "id_penugasan": 1,
+    "id_permintaan": 1,
+    "id_kurir": 1,
+    "metode": "otomatis",
+    "waktu_ditugaskan": "2026-11-12T14:15:00.000Z"
+  },
+  {
+    "id_penugasan": 2,
+    "id_permintaan": 3,
+    "id_kurir": 2,
+    "metode": "manual",
+    "waktu_ditugaskan": "2026-11-11T13:05:00.000Z"
+  },
+  {
+    "id_penugasan": 3,
+    "id_permintaan": 4,
+    "id_kurir": 1,
+    "metode": "otomatis",
+    "waktu_ditugaskan": "2026-11-10T15:05:00.000Z"
+  },
+  {
+    "id_penugasan": 4,
+    "id_permintaan": 6,
+    "id_kurir": 1,
+    "metode": "otomatis",
+    "waktu_ditugaskan": "2026-11-20T07:17:42.017Z"
+  },
+  {
+    "id_penugasan": 5,
+    "id_permintaan": 8,
+    "id_kurir": 1,
+    "metode": "manual",
+    "waktu_ditugaskan": "2026-11-20T07:37:52.520Z"
+  },
+  {
+    "id_penugasan": 6,
+    "id_permintaan": 9,
+    "id_kurir": 1,
+    "metode": "manual",
+    "waktu_ditugaskan": "2026-11-20T07:57:38.989Z"
+  }
+]

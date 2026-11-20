@@ -1,401 +1,745 @@
-/**
- * test_logic.js
- * SiTAB UNKLAB - Skrip Pengujian Komprehensif
- * Kelompok Miedal - FIK UNKLAB 2024
- *
- * Jalankan: node test_logic.js
- */
+// ============================================================================
+// SiTAB — Sistem Titip Antar Barang Kampus UNKLAB
+// test_logic.js — Automatic Black-Box Test Suite (TC-01 through TC-41)
+// ============================================================================
 
-'use strict';
+const {
+  AuthController,
+  RegistrasiController,
+  PermintaanController,
+  PenugasanController,
+  SerahTerimaController,
+  LaporanKehilanganController,
+  UlasanController,
+  KurirAdminController,
+  NotifikasiController,
+  readData,
+  writeData,
+  resetDatabase
+} = require('./controllers');
 
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
+// Reset database to ensure completely idempotent test execution
+resetDatabase();
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+let passedCount = 0;
+let failedCount = 0;
 
-let passed = 0;
-let failed = 0;
-const results = [];
-
-function assert(label, condition, detail = '') {
+function assert(condition, testId, description, detail = '') {
   if (condition) {
-    console.log(`  ✅ PASS  ${label}`);
-    passed++;
-    results.push({ label, status: 'PASS', detail });
+    passedCount++;
+    console.log(`[\x1b[32mPASS\x1b[0m] ${testId}: ${description}`);
   } else {
-    console.log(`  ❌ FAIL  ${label}${detail ? ' → ' + detail : ''}`);
-    failed++;
-    results.push({ label, status: 'FAIL', detail });
+    failedCount++;
+    console.error(`[\x1b[31mFAIL\x1b[0m] ${testId}: ${description} -> ${detail}`);
   }
 }
 
-function sha256(text) {
-  return crypto.createHash('sha256').update(text).digest('hex');
-}
+console.log('================================================================');
+console.log('   SiTAB — AUTOMATED BLACK-BOX TEST SUITE (TC-01 s.d. TC-41)   ');
+console.log('================================================================\n');
 
-function section(title) {
-  console.log(`\n${'═'.repeat(60)}`);
-  console.log(`  ${title}`);
-  console.log(`${'═'.repeat(60)}`);
-}
-
-// ─── Load Database ─────────────────────────────────────────────────────────────
-
-const DB_PATH = path.join(__dirname, 'data', 'sitab_db.json');
-
-section('MEMUAT DATABASE');
-let db;
-try {
-  const raw = fs.readFileSync(DB_PATH, 'utf-8');
-  db = JSON.parse(raw);
-  console.log(`  ℹ️  File ditemukan: ${DB_PATH}`);
-  console.log(`  ℹ️  Ukuran: ${(raw.length / 1024).toFixed(2)} KB`);
-} catch (err) {
-  console.error(`  ❌ FATAL: Tidak dapat memuat database: ${err.message}`);
-  process.exit(1);
-}
-
-// ─── TES 1: Integritas Struktur Database ──────────────────────────────────────
-
-section('TES 1: INTEGRITAS STRUKTUR DATABASE');
-
-const TABEL_WAJIB = [
-  'pengguna',
-  'kurir',
-  'jadwal_kurir',
-  'lokasi',
-  'permintaan',
-  'penugasan',
-  'riwayat_status',
-  'serah_terima',
-  'transaksi',
-  'laporan_kehilangan',
-  'ulasan',
-  'notifikasi',
-  'verifikasi_email',
-];
-
-for (const tabel of TABEL_WAJIB) {
+// ----------------------------------------------------------------------------
+// TC-01: Login mahasiswa dengan email kampus dan password yang benar
+// ----------------------------------------------------------------------------
+{
+  const res = AuthController.login('105022410118@student.unklab.ac.id', 'pass123');
   assert(
-    `Tabel '${tabel}' ada di database`,
-    db[tabel] !== undefined && Array.isArray(db[tabel]),
-    `Tabel tidak ditemukan atau bukan array`
+    res.success && res.dashboard === 'dashboard-mahasiswa' && res.user.nama.includes('Makarewa'),
+    'TC-01',
+    'Login mahasiswa dengan email kampus dan password yang benar',
+    JSON.stringify(res)
   );
 }
 
-assert('Database memiliki 13+ tabel/koleksi', TABEL_WAJIB.every((t) => db[t] !== undefined));
-assert('verifikasi_email adalah array kosong di awal', Array.isArray(db.verifikasi_email));
-
-// ─── TES 2: Verifikasi Tidak Ada "Daniel Rantung" ─────────────────────────────
-
-section('TES 2: VERIFIKASI TIDAK ADA NAMA TERLARANG');
-
-const dbString = JSON.stringify(db).toLowerCase();
-
-assert(
-  'Tidak ada nama "Daniel Rantung" di database',
-  !dbString.includes('daniel rantung'),
-  'Ditemukan nama "Daniel Rantung"!'
-);
-
-assert(
-  'Tidak ada string "daniel" di field nama pengguna',
-  db.pengguna.every((u) => !u.nama.toLowerCase().includes('daniel')),
-  'Ditemukan nama mengandung "daniel" pada pengguna'
-);
-
-// ─── TES 3: Verifikasi Anggota Kelompok Miedal ───────────────────────────────
-
-section('TES 3: VERIFIKASI ANGGOTA KELOMPOK MIEDAL');
-
-const ANGGOTA_MIEDAL = [
-  { nama_key: 'Salem', nim: '105022410043' },
-  { nama_key: 'Sanjaya', nim: '105022410044' },
-  { nama_key: 'Makarewa', nim: '105022410118' },
-  { nama_key: 'Sahala', nim: '105012410026' },
-];
-
-for (const anggota of ANGGOTA_MIEDAL) {
-  const found = db.pengguna.some((u) => u.nama.includes(anggota.nama_key));
+// ----------------------------------------------------------------------------
+// TC-02: Login dengan password salah
+// ----------------------------------------------------------------------------
+{
+  const res = AuthController.login('105022410118@student.unklab.ac.id', 'passSalah123');
   assert(
-    `Anggota "${anggota.nama_key}" ada di database`,
-    found,
-    `Tidak ditemukan pengguna dengan nama "${anggota.nama_key}"`
+    !res.success && res.message.includes('Email atau password salah'),
+    'TC-02',
+    'Login dengan password salah menampilkan pesan kesalahan generic',
+    JSON.stringify(res)
   );
 }
 
-assert(
-  'Total pengguna adalah 4 anggota Kelompok Miedal',
-  db.pengguna.length === 4,
-  `Jumlah pengguna: ${db.pengguna.length} (diharapkan: 4)`
-);
-
-// ─── TES 4: Verifikasi Admin ───────────────────────────────────────────────────
-
-section('TES 4: VERIFIKASI AKUN ADMINISTRATOR');
-
-const admin = db.pengguna.find((u) => u.peran === 'administrator');
-
-assert('Ada 1 akun administrator', !!admin, 'Akun administrator tidak ditemukan');
-
-if (admin) {
+// ----------------------------------------------------------------------------
+// TC-03: Ajukan penitipan dengan data lengkap
+// ----------------------------------------------------------------------------
+{
+  const res = PermintaanController.ajukanTitip({
+    id_pemesan: 5,
+    deskripsi_barang: 'Buku Catatan Pemrograman Web',
+    foto_barang: '/uploads/buku-catatan.jpg',
+    id_lokasi_asal: 1,
+    nama_penerima: 'Michelle Lumentut'
+  });
   assert(
-    'Admin menggunakan nama "Salem, Jovitly Mike"',
-    admin.nama === 'Salem, Jovitly Mike',
-    `Nama admin: "${admin.nama}"`
-  );
-  assert(
-    'NIM admin sesuai SRS ("105022410043" atau "admin")',
-    admin.nim === '105022410043' || admin.nim === 'admin',
-    `NIM admin: "${admin.nim}"`
-  );
-  assert(
-    'Status verifikasi admin adalah true',
-    admin.status_verifikasi === true
+    res.success && res.permintaan.status === 'Menunggu' && res.kode_otp.length === 4,
+    'TC-03',
+    'Ajukan penitipan barang dengan data lengkap dan foto',
+    JSON.stringify(res)
   );
 }
 
-// ─── TES 5: Validasi Format NIM ───────────────────────────────────────────────
-
-section('TES 5: VALIDASI FORMAT NIM ANGGOTA KELOMPOK');
-
-for (const anggota of ANGGOTA_MIEDAL) {
-  const user = db.pengguna.find((u) => u.nama.includes(anggota.nama_key));
-  if (user) {
-    assert(
-      `NIM ${anggota.nama_key} sesuai (${anggota.nim})`,
-      user.nim === anggota.nim || (user.peran === 'administrator' && user.nim === 'admin'),
-      `NIM tersimpan: "${user.nim}", diharapkan: "${anggota.nim}"`
-    );
-    assert(
-      `NIM ${anggota.nama_key} valid (angka)`,
-      /^\d+$/.test(user.nim) || user.nim === 'admin',
-      `NIM mengandung karakter non-angka: "${user.nim}"`
-    );
-  }
-}
-
-// ─── TES 6: Validasi Format Email ─────────────────────────────────────────────
-
-section('TES 6: VALIDASI FORMAT EMAIL');
-
-for (const user of db.pengguna) {
+// ----------------------------------------------------------------------------
+// TC-04: Ajukan penitipan tanpa foto barang
+// ----------------------------------------------------------------------------
+{
+  const res = PermintaanController.ajukanTitip({
+    id_pemesan: 5,
+    deskripsi_barang: 'Flashdisk Hitam 64GB',
+    foto_barang: '',
+    id_lokasi_asal: 1,
+    nama_penerima: 'Andrew Sahala'
+  });
   assert(
-    `Email ${user.nama} menggunakan domain valid UNKLAB`,
-    user.email.endsWith('@student.unklab.ac.id') || user.email.endsWith('@unklab.ac.id'),
-    `Email: "${user.email}"`
+    !res.success && res.field === 'foto_barang',
+    'TC-04',
+    'Ajukan penitipan tanpa foto barang ditolak sistem',
+    JSON.stringify(res)
   );
 }
 
-// ─── TES 7: Validasi Hash Password (miedal123) ────────────────────────────────
-
-section('TES 7: VALIDASI HASH PASSWORD (miedal123)');
-
-const HASH_MIEDAL = sha256('miedal123');
-
-assert(
-  `Hash "miedal123" benar (sha256)`,
-  sha256('miedal123') === HASH_MIEDAL,
-  `Diharapkan: ${HASH_MIEDAL}`
-);
-
-for (const user of db.pengguna) {
+// ----------------------------------------------------------------------------
+// TC-05: Pesan antar dengan data valid
+// ----------------------------------------------------------------------------
+let testOrderAntarId = null;
+let testOrderAntarOtp = null;
+{
+  const res = PermintaanController.pesanAntar({
+    id_pemesan: 5,
+    deskripsi_barang: 'Dokumen Skripsi Jilid Softcover',
+    id_lokasi_asal: 2, // Perpustakaan
+    id_lokasi_tujuan: 3, // Asrama Crystal
+    nama_penerima: 'Gabriella'
+  });
+  testOrderAntarId = res.permintaan ? res.permintaan.id_permintaan : null;
+  testOrderAntarOtp = res.kode_otp;
   assert(
-    `Password ${user.nama} (${user.peran}) menggunakan password "miedal123"`,
-    user.password_hash === HASH_MIEDAL || user.password === HASH_MIEDAL,
-    `Hash tersimpan: ${user.password_hash}`
+    res.success && res.permintaan.status === 'Menunggu' && res.permintaan.estimasi_waktu > 0,
+    'TC-05',
+    'Pesan antar dengan data valid dan rute berbeda',
+    JSON.stringify(res)
   );
 }
 
-// ─── TES 8: Validasi Data Kurir ───────────────────────────────────────────────
-
-section('TES 8: VALIDASI DATA KURIR');
-
-assert(
-  'Ada 2 record kurir',
-  db.kurir.length === 2,
-  `Jumlah kurir: ${db.kurir.length} (diharapkan: 2)`
-);
-
-for (const kurir of db.kurir) {
-  const userExists = db.pengguna.some((u) => u.id === kurir.pengguna_id);
+// ----------------------------------------------------------------------------
+// TC-06: Pesan antar dengan lokasi jemput sama dengan tujuan
+// ----------------------------------------------------------------------------
+{
+  const res = PermintaanController.pesanAntar({
+    id_pemesan: 5,
+    deskripsi_barang: 'Kotak Pensil',
+    id_lokasi_asal: 3,
+    id_lokasi_tujuan: 3,
+    nama_penerima: 'Teman'
+  });
   assert(
-    `Kurir ${kurir.nama} mereferensi pengguna yang ada (pengguna_id: ${kurir.pengguna_id})`,
-    userExists,
-    `pengguna_id "${kurir.pengguna_id}" tidak ditemukan di tabel pengguna`
-  );
-  assert(
-    `Kurir ${kurir.nama} statusnya "disetujui"`,
-    kurir.status_persetujuan === 'disetujui',
-    `Status: "${kurir.status_persetujuan}"`
-  );
-  assert(
-    `Kurir ${kurir.nama} adalah Sanjaya atau Sahala`,
-    kurir.nama.includes('Sanjaya') || kurir.nama.includes('Sahala'),
-    `Nama kurir: "${kurir.nama}"`
+    !res.success && res.field === 'id_lokasi_tujuan',
+    'TC-06',
+    'Pesan antar dengan lokasi jemput sama dengan tujuan ditolak',
+    JSON.stringify(res)
   );
 }
 
-const kurirPengguna = db.pengguna.filter((u) => u.peran === 'kurir');
-assert(
-  'Semua kurir memiliki peran "kurir" di tabel pengguna',
-  db.kurir.every((k) => db.pengguna.find((u) => u.id === k.pengguna_id)?.peran === 'kurir'),
-  'Ada kurir yang perannya bukan "kurir" di tabel pengguna'
-);
-
-// ─── TES 9: Validasi Data Permintaan & Referensi Lokasi ──────────────────────
-
-section('TES 9: VALIDASI DATA PERMINTAAN & REFERENSI LOKASI');
-
-const lokasiIds = db.lokasi.map((l) => l.id);
-const penggunaIds = db.pengguna.map((u) => u.id);
-
-assert(
-  'Ada 7 lokasi kampus UNKLAB',
-  db.lokasi.length === 7,
-  `Jumlah lokasi: ${db.lokasi.length} (diharapkan: 7)`
-);
-
-const lokasiWajib = ['GK1', 'GK2', 'PERP', 'ASC', 'ASE', 'ASP', 'KTN'];
-for (const kode of lokasiWajib) {
+// ----------------------------------------------------------------------------
+// TC-07: Penugasan otomatis ke kurir tersedia
+// ----------------------------------------------------------------------------
+{
+  const res = PenugasanController.tugaskanOtomatis(testOrderAntarId);
   assert(
-    `Lokasi "${kode}" ada di database`,
-    db.lokasi.some((l) => l.kode === kode),
-    `Lokasi dengan kode "${kode}" tidak ditemukan`
+    res.assigned === true && res.metode === 'otomatis',
+    'TC-07',
+    'Penugasan otomatis pesanan ke kurir yang tersedia',
+    JSON.stringify(res)
   );
 }
 
-assert(
-  'Ada 3 sample permintaan (1 Dalam Perjalanan, 1 Terkirim, 1 Menunggu)',
-  db.permintaan.length === 3,
-  `Jumlah permintaan: ${db.permintaan.length}`
-);
-
-const statusPermintaan = db.permintaan.map((p) => p.status);
-assert('Ada permintaan berstatus "Dalam Perjalanan"', statusPermintaan.includes('Dalam Perjalanan'));
-assert('Ada permintaan berstatus "Terkirim"', statusPermintaan.includes('Terkirim'));
-assert('Ada permintaan berstatus "Menunggu"', statusPermintaan.includes('Menunggu'));
-
-for (const p of db.permintaan) {
+// ----------------------------------------------------------------------------
+// TC-08: Pembaruan status oleh kurir terlihat oleh mahasiswa (UC-05, UC-10)
+// ----------------------------------------------------------------------------
+{
+  PermintaanController.perbaruiStatus(testOrderAntarId, 'Dijemput', 3);
+  const track = PermintaanController.lacakStatus(testOrderAntarId);
   assert(
-    `Permintaan ${p.id}: lokasi_jemput_id valid (${p.lokasi_jemput_id})`,
-    lokasiIds.includes(p.lokasi_jemput_id),
-    `lokasi_jemput_id "${p.lokasi_jemput_id}" tidak ada di tabel lokasi`
-  );
-  assert(
-    `Permintaan ${p.id}: lokasi_antar_id valid (${p.lokasi_antar_id})`,
-    lokasiIds.includes(p.lokasi_antar_id),
-    `lokasi_antar_id "${p.lokasi_antar_id}" tidak ada di tabel lokasi`
-  );
-  assert(
-    `Permintaan ${p.id}: pemohon_id valid (${p.pemohon_id})`,
-    penggunaIds.includes(p.pemohon_id),
-    `pemohon_id "${p.pemohon_id}" tidak ada di tabel pengguna`
-  );
-  assert(
-    `Permintaan ${p.id}: tidak ada barang terlarang`,
-    p.barang_terlarang === false
+    track.success && track.permintaan.status === 'Dijemput',
+    'TC-08',
+    'Pembaruan status oleh kurir terbaca di menu lacak status mahasiswa',
+    JSON.stringify(track)
   );
 }
 
-// ─── TES 10: Validasi Jadwal Kurir ────────────────────────────────────────────
-
-section('TES 10: VALIDASI JADWAL KURIR');
-
-assert(
-  'Ada jadwal untuk setiap kurir',
-  db.jadwal_kurir.length >= 2,
-  `Jumlah jadwal: ${db.jadwal_kurir.length}`
-);
-
-for (const jadwal of db.jadwal_kurir) {
-  const kurirAda = db.kurir.some((k) => k.id === jadwal.kurir_id);
+// ----------------------------------------------------------------------------
+// TC-09: Notifikasi saat status berubah (UC-06)
+// ----------------------------------------------------------------------------
+{
+  const notifs = NotifikasiController.getNotifikasi(5);
+  const hasStatusNotif = notifs.some(n => n.id_permintaan === testOrderAntarId);
   assert(
-    `Jadwal ${jadwal.id}: kurir_id valid (${jadwal.kurir_id})`,
-    kurirAda,
-    `kurir_id "${jadwal.kurir_id}" tidak ada di tabel kurir`
-  );
-  assert(
-    `Jadwal ${jadwal.id}: memiliki array hari`,
-    Array.isArray(jadwal.hari) && jadwal.hari.length > 0
+    hasStatusNotif,
+    'TC-09',
+    'Notifikasi perubahan status tercatat dan tersimpan untuk pemesan',
+    `Found ${notifs.length} notifications`
   );
 }
 
-// ─── TES 11: Validasi Transaksi ────────────────────────────────────────────────
-
-section('TES 11: VALIDASI TRANSAKSI');
-
-for (const trx of db.transaksi) {
-  const permintaanAda = db.permintaan.some((p) => p.id === trx.permintaan_id);
+// ----------------------------------------------------------------------------
+// TC-10: Verifikasi serah-terima dengan kode benar (UC-07)
+// ----------------------------------------------------------------------------
+{
+  const res = SerahTerimaController.verifikasiSerahTerima({
+    id_permintaan: testOrderAntarId,
+    kode_otp: testOrderAntarOtp,
+    foto_bukti: '/uploads/bukti-serahterima.jpg',
+    id_pengubah: 3
+  });
+  const checkStatus = PermintaanController.lacakStatus(testOrderAntarId);
   assert(
-    `Transaksi ${trx.id}: referensi permintaan valid (${trx.permintaan_id})`,
-    permintaanAda
-  );
-  assert(
-    `Transaksi ${trx.id}: biaya_layanan > 0`,
-    trx.biaya_layanan > 0,
-    `biaya_layanan: ${trx.biaya_layanan}`
-  );
-  assert(
-    `Transaksi ${trx.id}: total_bayar === biaya_layanan`,
-    trx.total_bayar === trx.biaya_layanan
+    res.success && checkStatus.permintaan.status === 'Terkirim',
+    'TC-10',
+    'Verifikasi serah-terima dengan kode OTP benar dan status menjadi Terkirim',
+    JSON.stringify(res)
   );
 }
 
-// ─── TES 12: Validasi Ulasan dan Notifikasi ───────────────────────────────────
+// ----------------------------------------------------------------------------
+// TC-11: Verifikasi serah-terima dengan kode salah (UC-07)
+// ----------------------------------------------------------------------------
+{
+  const res = SerahTerimaController.verifikasiSerahTerima({
+    id_permintaan: testOrderAntarId,
+    kode_otp: '0000',
+    foto_bukti: null,
+    id_pengubah: 3
+  });
+  assert(
+    !res.success && res.code === 'INVALID_OTP',
+    'TC-11',
+    'Verifikasi serah-terima dengan kode OTP salah ditolak sistem',
+    JSON.stringify(res)
+  );
+}
 
-section('TES 12: VALIDASI ULASAN & NOTIFIKASI');
+// ----------------------------------------------------------------------------
+// TC-12: Melihat riwayat transaksi (UC-08)
+// ----------------------------------------------------------------------------
+{
+  const allPermintaan = readData('permintaan');
+  const userPermintaan = allPermintaan.filter(p => p.id_pemesan === 5);
+  assert(
+    userPermintaan.length > 0,
+    'TC-12',
+    'Pengguna dapat melihat daftar transaksi miliknya',
+    `User 5 has ${userPermintaan.length} transactions`
+  );
+}
 
-assert('Ada minimal 1 ulasan', db.ulasan.length >= 1);
-const ulasan = db.ulasan[0];
-assert(
-  'Ulasan bintang 5 ada',
-  db.ulasan.some((u) => u.bintang === 5)
-);
-assert(
-  'Ulasan mereferensi permintaan yang ada',
-  db.ulasan.every((u) => db.permintaan.some((p) => p.id === u.permintaan_id))
-);
+// ----------------------------------------------------------------------------
+// TC-13: Mengubah jadwal kurir (UC-09)
+// ----------------------------------------------------------------------------
+{
+  const newSchedule = [
+    { hari: 'Senin', jam_mulai: '08:00', jam_selesai: '12:00' },
+    { hari: 'Kamis', jam_mulai: '13:00', jam_selesai: '17:00' }
+  ];
+  const res = KurirAdminController.updateJadwalKurir(1, newSchedule);
+  const checkJadwal = readData('jadwal_kurir').filter(j => j.id_kurir === 1);
+  assert(
+    res.success && checkJadwal.length === 2 && checkJadwal[0].jam_mulai === '08:00',
+    'TC-13',
+    'Jadwal kurir berhasil diperbarui dan tersimpan',
+    JSON.stringify(checkJadwal)
+  );
+}
 
-assert('Ada minimal 3 notifikasi', db.notifikasi.length >= 3);
-assert(
-  'Notifikasi mereferensi pengguna yang ada',
-  db.notifikasi.every((n) => penggunaIds.includes(n.pengguna_id))
-);
+// ----------------------------------------------------------------------------
+// TC-14: Perhitungan biaya jasa dan honor tugas selesai (UC-09)
+// ----------------------------------------------------------------------------
+{
+  const trList = readData('transaksi');
+  const tr = trList.find(t => t.id_permintaan === testOrderAntarId);
+  assert(
+    tr && tr.biaya_jasa === 5000 && tr.honor_kurir === 5000 && tr.status_bayar === 'lunas',
+    'TC-14',
+    'Biaya jasa dan honor kurir dihitung dan dicatat pada tugas selesai',
+    JSON.stringify(tr)
+  );
+}
 
-// ─── TES 13: Validasi Laporan Kehilangan ─────────────────────────────────────
+// ----------------------------------------------------------------------------
+// TC-15: Lapor kehilangan barang (UC-11)
+// ----------------------------------------------------------------------------
+let testLaporanId = null;
+{
+  const res = LaporanKehilanganController.laporKehilangan({
+    id_permintaan: testOrderAntarId,
+    id_pelapor: 5,
+    deskripsi: 'Barang sempat tertinggal di lobi drop point sebelum dijemput.'
+  });
+  testLaporanId = res.id_laporan;
+  assert(
+    res.success && testLaporanId > 0,
+    'TC-15',
+    'Laporan kehilangan barang berhasil diajukan dan masuk ke sistem',
+    JSON.stringify(res)
+  );
+}
 
-section('TES 13: VALIDASI LAPORAN KEHILANGAN');
+// ----------------------------------------------------------------------------
+// TC-16: Beri rating setelah barang Terkirim (UC-13)
+// ----------------------------------------------------------------------------
+{
+  const res = UlasanController.beriUlasan({
+    id_permintaan: testOrderAntarId,
+    rating: 5,
+    komentar: 'Pengantaran sangat cepat dan barang sampai tanpa cacat!',
+    id_pemberi: 5
+  });
+  assert(
+    res.success,
+    'TC-16',
+    'Mahasiswa berhasil memberi rating dan ulasan untuk pesanan Terkirim',
+    JSON.stringify(res)
+  );
+}
 
-assert('Ada minimal 1 laporan kehilangan', db.laporan_kehilangan.length >= 1);
-assert(
-  'Ada laporan dengan status "selesai"',
-  db.laporan_kehilangan.some((l) => l.status === 'selesai')
-);
-assert(
-  'Laporan mereferensi permintaan yang ada',
-  db.laporan_kehilangan.every((l) => db.permintaan.some((p) => p.id === l.permintaan_id))
-);
+// ----------------------------------------------------------------------------
+// TC-17: Dashboard administrator menampilkan ringkasan (UC-14)
+// ----------------------------------------------------------------------------
+{
+  const stats = KurirAdminController.getDashboardStats();
+  assert(
+    stats.totalTransaksi > 0 && typeof stats.utilisasiLoker === 'string',
+    'TC-17',
+    'Dashboard administrator berhasil menampilkan ringkasan operasional',
+    JSON.stringify(stats)
+  );
+}
 
-// ─── RINGKASAN ─────────────────────────────────────────────────────────────────
+// ----------------------------------------------------------------------------
+// TC-18: Administrator menindaklanjuti laporan kehilangan (UC-12)
+// ----------------------------------------------------------------------------
+{
+  const res = LaporanKehilanganController.tindakLanjuti({
+    id_laporan: testLaporanId,
+    status: 'selesai',
+    tindak_lanjut: 'Barang telah ditemukan dan diserahkan kembali ke pemilik.',
+    id_admin: 1
+  });
+  assert(
+    res.success,
+    'TC-18',
+    'Administrator menindaklanjuti dan menyelesaikan laporan kehilangan',
+    JSON.stringify(res)
+  );
+}
 
-section('RINGKASAN HASIL PENGUJIAN');
+// ----------------------------------------------------------------------------
+// TC-19: Administrator memverifikasi pengajuan kurir (UC-15)
+// ----------------------------------------------------------------------------
+{
+  // Create a pending courier application
+  const regUser = RegistrasiController.daftarkanKurir({
+    id_pengguna: 6, // Sahala, Andrew
+    jadwal: [{ hari: 'Senin', jam_mulai: '08:00', jam_selesai: '12:00' }],
+    setuju_kode_etik: true
+  });
+  const kurirId = regUser.id_kurir;
+  const res = KurirAdminController.verifikasiPengajuanKurir({
+    id_kurir: kurirId,
+    keputusan: 'setujui',
+    id_admin: 1
+  });
+  const userCheck = readData('pengguna').find(u => u.id_pengguna === 6);
+  assert(
+    res.success && userCheck.peran === 'kurir',
+    'TC-19',
+    'Administrator menyetujui pengajuan kurir dan peran akun berubah jadi kurir',
+    JSON.stringify(res)
+  );
+}
 
-const total = passed + failed;
-const pct = total > 0 ? ((passed / total) * 100).toFixed(1) : '0.0';
+// ----------------------------------------------------------------------------
+// TC-20: Login mahasiswa kurir diarahkan ke dashboard kurir (UC-01)
+// ----------------------------------------------------------------------------
+{
+  const res = AuthController.login('12410208@student.unklab.ac.id', 'pass123'); // Samuel Anasim
+  assert(
+    res.success && res.dashboard === 'dashboard-kurir' && res.user.peran === 'kurir',
+    'TC-20',
+    'Login mahasiswa kurir diarahkan ke Dashboard Kurir',
+    JSON.stringify(res)
+  );
+}
 
-console.log(`\n  Total tes  : ${total}`);
-console.log(`  Lulus      : ${passed} ✅`);
-console.log(`  Gagal      : ${failed} ❌`);
-console.log(`  Persentase : ${pct}%`);
+// ----------------------------------------------------------------------------
+// TC-21: Login administrator diarahkan ke dashboard administrator (UC-01)
+// ----------------------------------------------------------------------------
+{
+  const res = AuthController.login('12410207@student.unklab.ac.id', 'pass123'); // Salem
+  assert(
+    res.success && res.dashboard === 'dashboard-administrator' && res.user.peran === 'administrator',
+    'TC-21',
+    'Login administrator diarahkan ke Dashboard Administrator',
+    JSON.stringify(res)
+  );
+}
 
-if (failed === 0) {
-  console.log(`\n  🎉 SEMUA TES LULUS! Database SiTAB siap digunakan.`);
+// ----------------------------------------------------------------------------
+// TC-22: Login dengan email kampus tidak terdaftar (UC-01)
+// ----------------------------------------------------------------------------
+{
+  const res = AuthController.login('99999999@student.unklab.ac.id', 'pass123');
+  assert(
+    !res.success && res.code === 'INVALID_CREDENTIALS',
+    'TC-22',
+    'Login dengan email kampus tidak terdaftar ditolak dengan pesan generic',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-23: Login dengan akun nonaktif (UC-01)
+// ----------------------------------------------------------------------------
+{
+  const res = AuthController.login('12410999@student.unklab.ac.id', 'pass123'); // Lumintang
+  assert(
+    !res.success && res.code === 'ACCOUNT_INACTIVE',
+    'TC-23',
+    'Login akun nonaktif ditolak dan meminta hubungi administrator',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-24: Login dengan kolom kosong (UC-01)
+// ----------------------------------------------------------------------------
+{
+  const res = AuthController.login('', '');
+  assert(
+    !res.success && res.code === 'EMPTY_FIELDS',
+    'TC-24',
+    'Login dengan kolom kosong ditolak sistem',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-25: Login dengan akun yang belum diverifikasi (UC-01)
+// ----------------------------------------------------------------------------
+{
+  const res = AuthController.login('12410888@student.unklab.ac.id', 'pass123'); // Santoso
+  assert(
+    !res.success && res.code === 'ACCOUNT_UNVERIFIED',
+    'TC-25',
+    'Login akun belum diverifikasi diarahkan ke verifikasi email',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-26: Registrasi dengan data lengkap dan valid (UC-16)
+// ----------------------------------------------------------------------------
+let registeredTestEmail = '12410777@student.unklab.ac.id';
+let registeredDemoOtp = null;
+{
+  const res = RegistrasiController.daftarkanMahasiswa({
+    nama: 'Jonathan Aso',
+    email_kampus: registeredTestEmail,
+    no_hp: '081234567777',
+    password: 'password123',
+    konfirmasi_password: 'password123'
+  });
+  registeredDemoOtp = res.demo_kode;
+  assert(
+    res.success && res.demo_kode && res.demo_kode.length === 6,
+    'TC-26',
+    'Registrasi dengan data lengkap dan valid membuat akun belum_diverifikasi',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-27: Registrasi dengan kolom kosong (UC-16)
+// ----------------------------------------------------------------------------
+{
+  const res = RegistrasiController.daftarkanMahasiswa({
+    nama: '',
+    email_kampus: '12410776@student.unklab.ac.id',
+    no_hp: '081234567776',
+    password: 'password123',
+    konfirmasi_password: 'password123'
+  });
+  assert(
+    !res.success && res.message.includes('wajib diisi'),
+    'TC-27',
+    'Registrasi dengan kolom kosong ditolak sistem',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-28: Registrasi dengan email di luar domain UNKLAB (UC-16)
+// ----------------------------------------------------------------------------
+{
+  const res = RegistrasiController.daftarkanMahasiswa({
+    nama: 'Budi Santoso',
+    email_kampus: 'budi@gmail.com',
+    no_hp: '081234567775',
+    password: 'password123',
+    konfirmasi_password: 'password123'
+  });
+  assert(
+    !res.success && res.field === 'email_kampus',
+    'TC-28',
+    'Registrasi dengan email non-UNKLAB ditolak sistem',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-29: Registrasi dengan email kampus yang sudah terdaftar (UC-16)
+// ----------------------------------------------------------------------------
+{
+  const res = RegistrasiController.daftarkanMahasiswa({
+    nama: 'Salem Clone',
+    email_kampus: '12410207@student.unklab.ac.id',
+    no_hp: '081234567774',
+    password: 'password123',
+    konfirmasi_password: 'password123'
+  });
+  assert(
+    !res.success && res.code === 'EMAIL_ALREADY_EXISTS',
+    'TC-29',
+    'Registrasi dengan email yang sudah ada ditolak sistem',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-30: Registrasi dengan konfirmasi password tidak sama (UC-16)
+// ----------------------------------------------------------------------------
+{
+  const res = RegistrasiController.daftarkanMahasiswa({
+    nama: 'Matthew Pangemanan',
+    email_kampus: '12410773@student.unklab.ac.id',
+    no_hp: '081234567773',
+    password: 'password123',
+    konfirmasi_password: 'bedaPassword123'
+  });
+  assert(
+    !res.success && res.field === 'konfirmasi_password',
+    'TC-30',
+    'Registrasi dengan password konfirmasi berbeda ditolak sistem',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-31: Registrasi dengan format data tidak valid (UC-16)
+// ----------------------------------------------------------------------------
+{
+  const res = RegistrasiController.daftarkanMahasiswa({
+    nama: 'Willy Mantiri',
+    email_kampus: '12410772@student.unklab.ac.id',
+    no_hp: '0812abcde', // invalid phone
+    password: 'short', // < 8 chars
+    konfirmasi_password: 'short'
+  });
+  assert(
+    !res.success,
+    'TC-31',
+    'Registrasi dengan format telepon atau password < 8 karakter ditolak',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-32: Verifikasi email dengan kode benar lalu login (UC-17)
+// ----------------------------------------------------------------------------
+{
+  const verifRes = RegistrasiController.verifikasiEmail(registeredTestEmail, registeredDemoOtp);
+  const loginRes = AuthController.login(registeredTestEmail, 'password123');
+  assert(
+    verifRes.success && loginRes.success && loginRes.user.status_akun === 'aktif',
+    'TC-32',
+    'Verifikasi email kode benar mengaktifkan akun dan berhasil login',
+    JSON.stringify({ verifRes, loginRes })
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-33: Verifikasi email dengan kode salah atau kedaluwarsa (UC-17)
+// ----------------------------------------------------------------------------
+{
+  // Test with Santoso's unverified account
+  const res = RegistrasiController.verifikasiEmail('12410888@student.unklab.ac.id', '000000');
+  assert(
+    !res.success && res.code === 'INVALID_CODE',
+    'TC-33',
+    'Verifikasi email dengan kode salah ditolak dan hitungan percobaan bertambah',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-34: Kirim ulang kode verifikasi (UC-17)
+// ----------------------------------------------------------------------------
+{
+  const res = RegistrasiController.kirimUlangKode('12410888@student.unklab.ac.id');
+  assert(
+    res.success && res.demo_kode && res.demo_kode.length === 6,
+    'TC-34',
+    'Kirim ulang kode verifikasi menghasilkan 6-digit OTP baru',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-35: Registrasi kurir dengan data lengkap dan valid (UC-18)
+// ----------------------------------------------------------------------------
+let regKurirEmail = '12410555@student.unklab.ac.id';
+let regKurirId = null;
+{
+  const res = RegistrasiController.daftarkanKurir({
+    nama: 'Vincent Lumabiang',
+    email_kampus: regKurirEmail,
+    no_hp: '081234567555',
+    password: 'password123',
+    konfirmasi_password: 'password123',
+    jadwal: [{ hari: 'Rabu', jam_mulai: '13:00', jam_selesai: '17:00' }],
+    setuju_kode_etik: true
+  });
+  regKurirId = res.id_kurir;
+  assert(
+    res.success && res.id_kurir > 0,
+    'TC-35',
+    'Registrasi calon kurir lengkap tersimpan berstatus menunggu verifikasi',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-36: Registrasi kurir tanpa persetujuan kode etik atau jadwal (UC-18)
+// ----------------------------------------------------------------------------
+{
+  const res = RegistrasiController.daftarkanKurir({
+    nama: 'Solarbesain',
+    email_kampus: '12410554@student.unklab.ac.id',
+    no_hp: '081234567554',
+    password: 'password123',
+    konfirmasi_password: 'password123',
+    jadwal: [],
+    setuju_kode_etik: false
+  });
+  assert(
+    !res.success && (res.field === 'setuju_kode_etik' || res.field === 'jadwal'),
+    'TC-36',
+    'Registrasi kurir tanpa kode etik atau jadwal ditolak sistem',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-37: Registrasi kurir dengan email yang sudah terdaftar (UC-18)
+// ----------------------------------------------------------------------------
+{
+  const res = RegistrasiController.daftarkanKurir({
+    nama: 'Salem Jovitly',
+    email_kampus: '12410207@student.unklab.ac.id',
+    no_hp: '081234567801',
+    password: 'password123',
+    konfirmasi_password: 'password123',
+    jadwal: [{ hari: 'Senin', jam_mulai: '08:00', jam_selesai: '12:00' }],
+    setuju_kode_etik: true
+  });
+  assert(
+    !res.success,
+    'TC-37',
+    'Registrasi kurir dengan email yang sudah terdaftar ditolak',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-38: Mahasiswa yang sudah punya akun mengajukan diri sebagai kurir (UC-18)
+// ----------------------------------------------------------------------------
+let existingStudentKurirId = null;
+{
+  const res = RegistrasiController.daftarkanKurir({
+    id_pengguna: 7, // Michelle Lumentut
+    jadwal: [{ hari: 'Jumat', jam_mulai: '13:00', jam_selesai: '16:00' }],
+    setuju_kode_etik: true
+  });
+  existingStudentKurirId = res.id_kurir;
+  assert(
+    res.success && res.id_kurir > 0,
+    'TC-38',
+    'Mahasiswa aktif berhasil mengajukan diri sebagai kurir dari dashboard',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-39: Login calon kurir yang pengajuannya belum disetujui (UC-01, UC-18)
+// ----------------------------------------------------------------------------
+{
+  // Michelle is mahasiswa and applied for kurir, still pending approval
+  const res = AuthController.login('12410601@student.unklab.ac.id', 'pass123');
+  assert(
+    res.success && res.dashboard === 'dashboard-mahasiswa' && res.user.peran === 'mahasiswa',
+    'TC-39',
+    'Calon kurir yang belum disetujui masuk sebagai mahasiswa ke Dashboard Mahasiswa',
+    JSON.stringify(res)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-40: Administrator menyetujui pengajuan hasil registrasi kurir (UC-15)
+// ----------------------------------------------------------------------------
+{
+  const res = KurirAdminController.verifikasiPengajuanKurir({
+    id_kurir: existingStudentKurirId,
+    keputusan: 'setujui',
+    id_admin: 1
+  });
+  const checkLogin = AuthController.login('12410601@student.unklab.ac.id', 'pass123');
+  assert(
+    res.success && checkLogin.dashboard === 'dashboard-kurir' && checkLogin.user.peran === 'kurir',
+    'TC-40',
+    'Administrator menyetujui kurir dan login berikutnya masuk Dashboard Kurir',
+    JSON.stringify(checkLogin)
+  );
+}
+
+// ----------------------------------------------------------------------------
+// TC-41: Administrator menolak pengajuan kurir dengan alasan (UC-15)
+// ----------------------------------------------------------------------------
+{
+  const res = KurirAdminController.verifikasiPengajuanKurir({
+    id_kurir: regKurirId,
+    keputusan: 'tolak',
+    alasan_penolakan: 'Jadwal shift bentrok dengan jam wajib kuliah umum.',
+    id_admin: 1
+  });
+  const kurirData = readData('kurir').find(k => k.id_kurir === regKurirId);
+  assert(
+    res.success && kurirData.status_verifikasi === 'ditolak' && kurirData.alasan_penolakan.includes('bentrok'),
+    'TC-41',
+    'Administrator menolak pengajuan kurir dengan alasan dan tersimpan di database',
+    JSON.stringify(kurirData)
+  );
+}
+
+console.log('\n================================================================');
+console.log(`TEST SUMMARY: ${passedCount} / ${passedCount + failedCount} PASSED`);
+if (failedCount === 0) {
+  console.log('STATUS: \x1b[32mALL 41 TEST CASES PASSED SUCCESSFULLY!\x1b[0m');
 } else {
-  console.log(`\n  ⚠️  Ada ${failed} tes yang GAGAL. Periksa item bertanda ❌ di atas.`);
+  console.error(`STATUS: \x1b[31m${failedCount} TEST CASES FAILED!\x1b[0m`);
 }
+console.log('================================================================\n');
 
-console.log(`\n${'═'.repeat(60)}\n`);
-
-process.exit(failed === 0 ? 0 : 1);
+process.exit(failedCount > 0 ? 1 : 0);

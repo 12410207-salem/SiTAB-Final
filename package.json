@@ -1,4 +1,25 @@
 {
+ <<<<<<< HEAD
+  "name": "sitab-final",
+  "version": "1.5.0",
+  "description": "SiTAB — Sistem Titip Antar Barang Kampus UNKLAB",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test_logic.js",
+    "test:e2e": "node test_e2e_http.js",
+    "test:all": "node test_logic.js && node test_e2e_http.js"
+  },
+  "keywords": [
+    "sitab",
+    "unklab",
+    "logistik-kampus",
+    "titip-antar",
+    "scrum"
+  ],
+  "author": "Kelompok Miedal (Salem, Sanjaya, Makarewa, Sahala) - Universitas Klabat",
+  "license": "ISC"
+=======
   "name": "sitab-unklab",
   "version": "2.0.0",
   "description": "Sistem Titip Antar Barang Kampus UNKLAB - Kelompok Miedal",
@@ -12,4 +33,4 @@
   "author": "Kelompok Miedal - Salem, Sanjaya, Makarewa, Sahala",
   "license": "MIT",
   "engines": { "node": ">=18.0.0" }
-}
+>>>>>>> 2e27fd8a28af4990ea3dad9dd274e50d922d6e14
